@@ -37,9 +37,6 @@ d2=d2.reshape((d2.shape[1],))
 print(d1.shape)
 print(d2.shape)
 
-print(d1[-1])
-print(d2[-1])
-
 if np.array_equal(d1, d2):
     print('Extraction is Okay !')
 else:

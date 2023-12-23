@@ -1,7 +1,12 @@
+#include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <complex>
 
 #include "au_utils.cpp"
+#include "fft_utils.cpp"
+#include "src/constants.h"
 
 int main(){
     std::ifstream file("./blues.00000.au", std::ios::binary);
@@ -16,6 +21,8 @@ int main(){
     int encoding = read32Bits(file);
     int fs = read32Bits(file);
     int nbCanal = read32Bits(file);
+    int nSample = 0;
+    std::vector<int> vSample;
 
 
     std::cout << "Nombre magique: " << magicNumber << std::endl;
@@ -34,23 +41,53 @@ int main(){
         return -1;
     }
 
-    int n = 0;
-
     int sample = readSample(file);
     csvFile << sample;
 
     while (!file.eof()) {
-        csvFile << ", ";
         int sample = readSample(file);
-        csvFile << sample;
-        n++;
+        if (!file.eof()){
+            csvFile << ", ";
+            csvFile << sample;
+            vSample.push_back(sample);
+            nSample++;
+        }
     }
 
-    std::cout << n << std::endl;
-
+    std::cout << nSample << std::endl;
 
     file.close();
     csvFile.close();
+
+
+    std::vector<Complex> fft(FFT_SIZE);
+
+    int n = 0;
+    for(int i = 0; i < vSample.size(); i += FFT_SIZE){
+        fft[n] = vSample[i];
+        n++;
+    }
+    ite_dit_fft(fft);
+
+    std::ofstream fftCsvFile("./fft.csv");
+    for(int i = 0; i < fft.size(); i++){
+        fftCsvFile << fft[i].real();
+        fftCsvFile << "\n";
+    }
+
+    std::ofstream muCsvFile("./mu.csv");
+
+    double magnitude_tot = 0.0;
+    std::vector<double> mu;
+    std::vector<double> var;
+    for (int i = 0; i < fft.size(); i++) {
+        double magnitude = std::norm(fft[i]);
+
+        magnitude_tot += magnitude;
+        mu.push_back(magnitude_tot/i);
+        muCsvFile << magnitude_tot/i;
+        muCsvFile << "\n";
+    }
 
     return 0;
 }
