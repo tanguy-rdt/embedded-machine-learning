@@ -82,16 +82,16 @@ void AudioPreprocessing::extractDescriptor(std::vector<double> normalized_data) 
         ite_dit_fft(fft); 
 
         for (int j = 0; j < FFT_SIZE; j++) {
-            double magnitude = std::norm(fft[j]) / FFT_SIZE;
+            double magnitude = std::norm(fft[j]);
             fftCsvFile << magnitude << "\n";
 
-            mu[j] = i / (i + 1.0) * mu[j] + magnitude / (i + 1.0);
-            _auDescriptor.mu[j + (FFT_SIZE * i)] = mu[j];
-            muCsvFile << mu[j]  << "\n";
+            mu[j] += magnitude / FFT_SIZE;
+            _auDescriptor.mu[j + (FFT_SIZE * i)] = mu[j] / FFT_NUMBER;
+            muCsvFile << _auDescriptor.mu[j + (FFT_SIZE * i)] << "\n";
 
-            sigma[j] += (pow((i + 2.) * fft[j].real() - mu[j] * (i + 1.), 2) / (i + 2.) / (i + 1.)) / FFT_SIZE;
-            _auDescriptor.sigma[j + (FFT_SIZE * i)] = sigma[j];
-            sigmaCsvFile << sigma[j]  << "\n";
+            sigma[j] += std::pow(magnitude - mu[j], 2)/FFT_SIZE;
+            _auDescriptor.sigma[j + (FFT_SIZE * i)] = std::sqrt(sigma[j]/FFT_NUMBER);
+            sigmaCsvFile << _auDescriptor.sigma[j + (FFT_SIZE * i)]  << "\n";
         }
     }
 }
