@@ -1,6 +1,11 @@
+#include <iostream>
+
 #include "audio_preprocessing.h"
 #include "fft_utils.h"
+
+#ifdef DEBUG
 #include "plot.h"
+#endif
 
 AudioPreprocessing auPreprocessing;
 
@@ -11,6 +16,7 @@ int main(){
     const AudioPreprocessing::AuHeader auHeader = auPreprocessing.getAuHeader();
     const AudioPreprocessing::AuData auData = auPreprocessing.getAuData();
 
+    #ifdef DEBUG
     std::cout << "Magic number: " << auHeader.magicNumber << std::endl;
     std::cout << "Data shift: " << auHeader.dataShift << std::endl;
     std::cout << "Data size: " << auHeader.dataSize << std::endl;
@@ -18,6 +24,7 @@ int main(){
     std::cout << "Sample rate: " << auHeader.fs << std::endl;
     std::cout << "Canal number: " << auHeader.nbCanal << std::endl;
     std::cout << "Sample number: " << auData.nbSample << std::endl;
+    #endif
 
     #ifdef DEBUG
     timePlot(auData.samples, auHeader.fs, "audio");
