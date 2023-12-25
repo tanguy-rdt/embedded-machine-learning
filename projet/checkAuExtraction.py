@@ -7,8 +7,8 @@ Created on Mon Nov 29 22:26:59 2021
 import numpy as np
 import pandas as pd
 
-file_au='blues.00000.au'
-file_c='signal.csv'
+file_au='./resources/blues.00000.au'
+file_c='./csv/signal.csv'
 Fe=22050
 
 def readAuFile(file):
