@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 cd au_to_csv
 cmake .
@@ -7,10 +7,11 @@ cd ..
 
 for type in au_files/*; do
     if [ -d "$type" ]; then
-        mkdir ./csv_files/$type/
-        echo "\t Prepare type $type"
+        echo "Prepare type $type"
+        mkdir -p ./csv_files/$type/
         for file in "$type"/*.au; do
-            echo "\tPrepare au file $file"
+            echo "Prepare au file $file"
+            mkdir -p ./csv_files/$type/
             ./au_to_csv/machine_learning.o "$file"
         done
     fi

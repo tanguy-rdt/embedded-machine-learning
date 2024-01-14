@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "audio_preprocessing.h"
 #include "fft_utils.h"
@@ -16,6 +17,16 @@ int main(int argc, char *argv[]){
     }
 
     const char* filePath = argv[1];
+
+    size_t lastSlashIndex = filePath.find_last_of("/");
+    std::string fileName = filePath.substr(lastSlashIndex + 1);
+    size_t typeSlashIndex = filePath.find_last_of("/", lastSlashIndex - 1);
+    std::string fileType = filePath.substr(typeSlashIndex + 1, lastSlashIndex - typeSlashIndex - 1);
+
+    std::cout << "File Type: " << fileType << std::endl;
+    std::cout << "File Name: " << fileName << std::endl;
+
+
 
     // ------
     // Part 1: read audio file
