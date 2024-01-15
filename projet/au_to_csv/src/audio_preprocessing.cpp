@@ -15,9 +15,12 @@ int AudioPreprocessing::readAudioFile(const char* path){
         return -1;
     }
 
-    std::ofstream csvFile("./csv/signal.csv");
+    char csvPath[1024];
+    sprintf(csvPath, "%s/data.csv", _csvPath);
+    std::ofstream csvFile(csvPath);
+
     if (!csvFile) {
-        std::cerr << "Unable to create or write in the csv file" << std::endl;
+        std::cerr << "Unable to create or write in the csv file" << csvPath << std::endl;
         file.close();
         return -2;
     }
@@ -65,9 +68,9 @@ void AudioPreprocessing::normalizeData(){
 
 
 void AudioPreprocessing::extractDescriptor(std::vector<double> normalized_data) {
-    std::ofstream fftCsvFile("./csv/fft.csv");
-    std::ofstream muCsvFile("./csv/mu.csv");
-    std::ofstream sigmaCsvFile("./csv/sigma.csv");
+    char descriptorCsvPath[1024];
+    sprintf(descriptorCsvPath, "%s/descriptor.csv", _csvPath);
+    std::ofstream descriptorCsvFile(descriptorCsvPath);
 
     std::vector<double> sigma(FFT_SIZE, 0.0);
     std::vector<double> mu(FFT_SIZE, 0.0);
@@ -82,17 +85,15 @@ void AudioPreprocessing::extractDescriptor(std::vector<double> normalized_data) 
         ite_dit_fft(fft); 
 
         for (int j = 0; j < FFT_SIZE; j++) {
-            fftCsvFile << fft[j] << "\n";
             double magnitude = std::norm(fft[j]);
-             _fft.fft[j + (FFT_SIZE * i)] = std::norm(fft[j]);
 
             mu[j] += magnitude / FFT_SIZE;
             _auDescriptor.mu[j + (FFT_SIZE * i)] = mu[j] / FFT_NUMBER;
-            muCsvFile << _auDescriptor.mu[j + (FFT_SIZE * i)] << "\n";
 
             sigma[j] = std::pow(magnitude - mu[j], 2)/FFT_SIZE;
             _auDescriptor.sigma[j + (FFT_SIZE * i)] = std::sqrt(sigma[j]/FFT_NUMBER);
-            sigmaCsvFile << _auDescriptor.sigma[j + (FFT_SIZE * i)]  << "\n";
+
+            descriptorCsvFile << _auDescriptor.mu[j + (FFT_SIZE * i)] << "," << _auDescriptor.sigma[j + (FFT_SIZE * i)] << "\n";
         }
 
     }
@@ -110,6 +111,8 @@ const AudioPreprocessing::AuDescriptor& AudioPreprocessing::getAuDescriptor() co
     return _auDescriptor;
 }
 
-const AudioPreprocessing::FFT& AudioPreprocessing::getFFT() const {
-    return _fft;
+
+void AudioPreprocessing::setCsvPath(const char* path) {
+    _csvPath = path;
 }
+

@@ -68,40 +68,4 @@ void descriptorPlot(const std::vector<T> mu, const std::vector<T> sigma, const i
     plt::show();
 }
 
-template<typename T>
-void frequencyPlot(const std::vector<T> fft, const int fs){
-    if (fft.size() != FFT_SIZE * FFT_NUMBER) {
-        std::cerr << "Erreur : La taille des données ne correspond pas à FFT_SIZE * FFT_NUMBER" << std::endl;
-    }
-
-    std::vector<double> meanFFT(FFT_SIZE, 0.0);
-    for (int i = 0; i < FFT_NUMBER; ++i) {
-        for (int j = 0; j < FFT_SIZE; ++j) {
-            meanFFT[j] += fft[i * FFT_SIZE + j] / FFT_NUMBER;
-        }
-    }
-    std::rotate(meanFFT.begin(), meanFFT.begin() + meanFFT.size() / 2, meanFFT.end());
-
-    std::vector<double> freqs(FFT_SIZE);
-    for (int i = 0; i < FFT_SIZE; ++i) {
-        freqs[i] = (i - FFT_SIZE / 2) * fs / FFT_SIZE / 1000.0; 
-    }
-
-    plt::figure_size(1200, 600);
-
-    plt::plot(freqs, meanFFT);
-    plt::xlabel("freq");
-    plt::ylabel("Amplitude");
-    plt::title("FFT");
-    plt::grid(true);
-
-    plt::show();
-}
-
-
-
-void spectrogramme(){
-
-}
-
 #endif

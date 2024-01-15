@@ -36,12 +36,6 @@ public:
         AuDescriptor() : sigma(MAX_SAMPLE, 0.0), mu(MAX_SAMPLE, 0.0) {}
     };
 
-    struct FFT{
-        std::vector<double> fft;
-
-        FFT() : fft(FFT_SIZE * FFT_NUMBER,0) {}
-    };
-
     AudioPreprocessing();
     ~AudioPreprocessing();
 
@@ -50,13 +44,13 @@ public:
     const AuHeader& getAuHeader() const;
     const AuData& getAuData() const;
     const AuDescriptor& getAuDescriptor() const;
-    const FFT& getFFT() const;
+    void setCsvPath(const char* path);
 
 private:
     AuHeader _auHeader;
     AuData _auData;
     AuDescriptor _auDescriptor;
-    FFT _fft;
+    const char* _csvPath;
 
     void normalizeData();
 };

@@ -16,21 +16,23 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    const char* filePath = argv[1];
+    const std::string filePath = argv[1];
 
     size_t lastSlashIndex = filePath.find_last_of("/");
-    std::string fileName = filePath.substr(lastSlashIndex + 1);
+    std::string fileNameWithExtension = filePath.substr(lastSlashIndex + 1);
     size_t typeSlashIndex = filePath.find_last_of("/", lastSlashIndex - 1);
     std::string fileType = filePath.substr(typeSlashIndex + 1, lastSlashIndex - typeSlashIndex - 1);
+    size_t lastDotIndex = fileNameWithExtension.find_last_of(".");
+    std::string fileName = fileNameWithExtension.substr(0, lastDotIndex);
 
-    std::cout << "File Type: " << fileType << std::endl;
-    std::cout << "File Name: " << fileName << std::endl;
 
-
+    char csvPath[1024];
+    sprintf(csvPath, "csv_files/%s/%s", fileType.c_str(), fileName.c_str());
+    auPreprocessing.setCsvPath(csvPath);
 
     // ------
     // Part 1: read audio file
-    auPreprocessing.readAudioFile(filePath);
+    auPreprocessing.readAudioFile(filePath.c_str());
     const AudioPreprocessing::AuHeader auHeader = auPreprocessing.getAuHeader();
     const AudioPreprocessing::AuData auData = auPreprocessing.getAuData();
 
@@ -52,12 +54,9 @@ int main(int argc, char *argv[]){
     // Part 2: Extract descriptor
     auPreprocessing.extractDescriptor(auData.samples);
     const AudioPreprocessing::AuDescriptor auDescriptor = auPreprocessing.getAuDescriptor();
-
-    const AudioPreprocessing::FFT fft = auPreprocessing.getFFT();
     
     #ifdef DEBUG
     descriptorPlot(auDescriptor.mu, auDescriptor.sigma, auHeader.fs, "Spectrogramme et descripteurs");
-    frequencyPlot(fft.fft, auHeader.fs);
     #endif
 
     return 0;
