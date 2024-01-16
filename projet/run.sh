@@ -9,13 +9,13 @@ DEBUG_MODE=0
 usage() {
     echo "Usage: $0 [COMMAND] [OPTION]"
     echo "Command:"
-    echo "  prepare_audio_file    -- Convert audio files to CSV (time/frequency data and descriptors)"
+    echo "  create_dataset        -- Convert audio files to CSV (time/frequency data and descriptors) and create dataset"
     echo "  help                  -- Show this message"
     echo "Options:"
     echo "  -d, --debug           -- Enable debug mode"
 }
 
-prepare_audio_file() {
+create_dataset() {
     if [ "$DEBUG_MODE" -eq 1 ]; then
         cd "${WORKDIR}/au_to_csv" || exit
         cmake -P CMakeClean.cmake
@@ -68,8 +68,8 @@ while [ "$1" != "" ]; do
 done
 
 case ${COMMAND} in 
-    'prepare_audio_file')
-        prepare_audio_file
+    'create_dataset')
+        create_dataset
         ;;
     'help'|'')
         usage
