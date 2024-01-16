@@ -22,39 +22,35 @@ void timePlot(const std::vector<T> data, const int fs, const char* title){
 }
 
 template<typename T>
-void descriptorPlot(const std::vector<T> &mu, const std::vector<T> &sigma, const int fs, const char* title) {
-    if (mu.size() != FFT_SIZE || sigma.size() != FFT_SIZE) {
+void descriptorPlot(const std::vector<T> mu, const std::vector<T> sigma, const int fs, const char* title){
+    if ((mu.size() != FFT_SIZE) && (sigma.size() != FFT_SIZE)) {
         std::cerr << "Erreur : La taille des données ne correspond pas à FFT_SIZE" << std::endl;
-        return;
     }
 
-    // Création des copies locales pour appliquer le FFT shift
-    std::vector<T> shifted_mu = mu;
-    std::vector<T> shifted_sigma = sigma;
+    std::vector<T> muShifted = mu;
+    std::vector<T> sigmaShifted = sigma;
 
-    // Application du FFT shift
-    std::rotate(shifted_mu.begin(), shifted_mu.begin() + shifted_mu.size() / 2, shifted_mu.end());
-    std::rotate(shifted_sigma.begin(), shifted_sigma.begin() + shifted_sigma.size() / 2, shifted_sigma.end());
+    std::rotate(muShifted.begin(), muShifted.begin() + muShifted.size() / 2, muShifted.end());
+    std::rotate(sigmaShifted.begin(), sigmaShifted.begin() + sigmaShifted.size() / 2, sigmaShifted.end());
 
-    // Calcul des fréquences pour l'affichage avec fréquence zéro au centre
     std::vector<double> freqs(FFT_SIZE);
     for (int i = 0; i < FFT_SIZE; ++i) {
-        freqs[i] = ((i + FFT_SIZE / 2) % FFT_SIZE - FFT_SIZE / 2) * static_cast<double>(fs) / FFT_SIZE / 1000.0;
+        freqs[i] = (i - FFT_SIZE / 2) * fs / FFT_SIZE / 1000.0; 
     }
 
     plt::figure_size(1200, 600);
 
     plt::suptitle(title);
     plt::subplot(1, 2, 1);
-    plt::plot(freqs, shifted_mu);
-    plt::xlabel("Fréquence (kHz)");
+    plt::plot(freqs, muShifted);
+    plt::xlabel("Time (s)");
     plt::ylabel("Amplitude");
     plt::title("Moyenne temporelle du spectrogramme");
     plt::grid(true);
 
     plt::subplot(1, 2, 2);
-    plt::plot(freqs, shifted_sigma);
-    plt::xlabel("Fréquence (kHz)");
+    plt::plot(freqs, sigmaShifted);
+    plt::xlabel("Time (s)");
     plt::ylabel("Amplitude");
     plt::title("Ecart-type temporel du spectrogramme");
     plt::grid(true);
