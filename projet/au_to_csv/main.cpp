@@ -29,6 +29,7 @@ int main(int argc, char *argv[]){
     char csvPath[1024];
     sprintf(csvPath, "csv_files/%s/%s", fileType.c_str(), fileName.c_str());
     auPreprocessing.setCsvPath(csvPath);
+    auPreprocessing.setAudioType(fileName.c_str());
 
     // ------
     // Part 1: read audio file

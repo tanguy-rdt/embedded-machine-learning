@@ -22,50 +22,46 @@ void timePlot(const std::vector<T> data, const int fs, const char* title){
 }
 
 template<typename T>
-void descriptorPlot(const std::vector<T> mu, const std::vector<T> sigma, const int fs, const char* title){
-    if ((mu.size() != FFT_SIZE * FFT_NUMBER) && (sigma.size() != FFT_SIZE * FFT_NUMBER)) {
-        std::cerr << "Erreur : La taille des données ne correspond pas à FFT_SIZE * FFT_NUMBER" << std::endl;
+void descriptorPlot(const std::vector<T> &mu, const std::vector<T> &sigma, const int fs, const char* title) {
+    if (mu.size() != FFT_SIZE || sigma.size() != FFT_SIZE) {
+        std::cerr << "Erreur : La taille des données ne correspond pas à FFT_SIZE" << std::endl;
+        return;
     }
 
-    std::vector<double> meanMuFFT(FFT_SIZE, 0.0);
-    for (int i = 0; i < FFT_NUMBER; ++i) {
-        for (int j = 0; j < FFT_SIZE; ++j) {
-            meanMuFFT[j] += mu[i * FFT_SIZE + j] / FFT_NUMBER;
-        }
-    }
-    std::rotate(meanMuFFT.begin(), meanMuFFT.begin() + meanMuFFT.size() / 2, meanMuFFT.end());
+    // Création des copies locales pour appliquer le FFT shift
+    std::vector<T> shifted_mu = mu;
+    std::vector<T> shifted_sigma = sigma;
 
-    std::vector<double> meanSigmaFFT(FFT_SIZE, 0.0);
-    for (int i = 0; i < FFT_NUMBER; ++i) {
-        for (int j = 0; j < FFT_SIZE; ++j) {
-            meanSigmaFFT[j] += sigma[i * FFT_SIZE + j] / FFT_NUMBER;
-        }
-    }
-    std::rotate(meanSigmaFFT.begin(), meanSigmaFFT.begin() + meanSigmaFFT.size() / 2, meanSigmaFFT.end());
+    // Application du FFT shift
+    std::rotate(shifted_mu.begin(), shifted_mu.begin() + shifted_mu.size() / 2, shifted_mu.end());
+    std::rotate(shifted_sigma.begin(), shifted_sigma.begin() + shifted_sigma.size() / 2, shifted_sigma.end());
 
+    // Calcul des fréquences pour l'affichage avec fréquence zéro au centre
     std::vector<double> freqs(FFT_SIZE);
     for (int i = 0; i < FFT_SIZE; ++i) {
-        freqs[i] = (i - FFT_SIZE / 2) * fs / FFT_SIZE / 1000.0; 
+        freqs[i] = ((i + FFT_SIZE / 2) % FFT_SIZE - FFT_SIZE / 2) * static_cast<double>(fs) / FFT_SIZE / 1000.0;
     }
 
     plt::figure_size(1200, 600);
 
     plt::suptitle(title);
     plt::subplot(1, 2, 1);
-    plt::plot(freqs, meanMuFFT);
-    plt::xlabel("Time (s)");
+    plt::plot(freqs, shifted_mu);
+    plt::xlabel("Fréquence (kHz)");
     plt::ylabel("Amplitude");
     plt::title("Moyenne temporelle du spectrogramme");
     plt::grid(true);
 
     plt::subplot(1, 2, 2);
-    plt::plot(freqs, meanSigmaFFT);
-    plt::xlabel("Time (s)");
+    plt::plot(freqs, shifted_sigma);
+    plt::xlabel("Fréquence (kHz)");
     plt::ylabel("Amplitude");
     plt::title("Ecart-type temporel du spectrogramme");
     plt::grid(true);
 
     plt::show();
 }
+
+
 
 #endif

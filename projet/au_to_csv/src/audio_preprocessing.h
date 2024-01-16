@@ -33,7 +33,7 @@ public:
         std::vector<double> sigma;
         std::vector<double> mu;
 
-        AuDescriptor() : sigma(MAX_SAMPLE, 0.0), mu(MAX_SAMPLE, 0.0) {}
+        AuDescriptor() : sigma(FFT_SIZE, 0.0), mu(FFT_SIZE, 0.0) {}
     };
 
     AudioPreprocessing();
@@ -45,12 +45,15 @@ public:
     const AuData& getAuData() const;
     const AuDescriptor& getAuDescriptor() const;
     void setCsvPath(const char* path);
+    void setAudioType(const char* audioType);
+
 
 private:
     AuHeader _auHeader;
     AuData _auData;
     AuDescriptor _auDescriptor;
     const char* _csvPath;
+    const char* _audioType;
 
     void normalizeData();
 };

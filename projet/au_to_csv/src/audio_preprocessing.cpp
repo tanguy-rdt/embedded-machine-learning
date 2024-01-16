@@ -72,8 +72,8 @@ void AudioPreprocessing::extractDescriptor(std::vector<double> normalized_data) 
     sprintf(descriptorCsvPath, "%s/descriptor.csv", _csvPath);
     std::ofstream descriptorCsvFile(descriptorCsvPath);
 
-    std::vector<double> sigma(FFT_SIZE, 0.0);
-    std::vector<double> mu(FFT_SIZE, 0.0);
+    std::vector<double> sum(FFT_SIZE, 0.0);
+    std::vector<double> c(FFT_SIZE, 0.0);   
 
     for (int i = 0; i < FFT_NUMBER; i++) {
         std::vector<std::complex<float>> fft(FFT_SIZE,0);
@@ -84,19 +84,30 @@ void AudioPreprocessing::extractDescriptor(std::vector<double> normalized_data) 
 
         ite_dit_fft(fft); 
 
+
         for (int j = 0; j < FFT_SIZE; j++) {
             double magnitude = std::norm(fft[j]);
 
-            mu[j] += magnitude / FFT_SIZE;
-            _auDescriptor.mu[j + (FFT_SIZE * i)] = mu[j] / FFT_NUMBER;
+            _auDescriptor.mu[j] += magnitude / FFT_SIZE;
 
-            sigma[j] = std::pow(magnitude - mu[j], 2)/FFT_SIZE;
-            _auDescriptor.sigma[j + (FFT_SIZE * i)] = std::sqrt(sigma[j]/FFT_NUMBER);
-
-            descriptorCsvFile << _auDescriptor.mu[j + (FFT_SIZE * i)] << "," << _auDescriptor.sigma[j + (FFT_SIZE * i)] << "\n";
+            sum[j] += magnitude;
+            if (i == 0) {
+                c[j]=0;
+            }
+            else {
+                c[j] = c[j] + std::pow(((i+1) * magnitude - sum[j]), 2)/(i * (i + 1));
+            }
+            _auDescriptor.sigma[j] += std::sqrt(c[j]/FFT_SIZE);
         }
-
     }
+
+    for(int i = 0; i < FFT_SIZE; i++){
+        descriptorCsvFile << _auDescriptor.mu[i] << ",";
+    }
+    for(int i = 0; i < FFT_SIZE; i++){
+        descriptorCsvFile << _auDescriptor.sigma[i] << ",";
+    }
+    descriptorCsvFile << _audioType;
 }
 
 const AudioPreprocessing::AuHeader& AudioPreprocessing::getAuHeader() const {
@@ -115,4 +126,9 @@ const AudioPreprocessing::AuDescriptor& AudioPreprocessing::getAuDescriptor() co
 void AudioPreprocessing::setCsvPath(const char* path) {
     _csvPath = path;
 }
+
+void AudioPreprocessing::setAudioType(const char* audioType) {
+    _audioType = audioType;
+}
+
 

@@ -32,6 +32,8 @@ prepare_audio_file() {
                     echo "Prepare au file ${file_name}"
                     mkdir -p "${WORKDIR}/csv_files/${type_name}/${file_name}/"
                     ./au_to_csv/machine_learning.o "${file_path}"
+                    cat "${WORKDIR}/csv_files/${type_name}/${file_name}/descriptor.csv" >> "${WORKDIR}/csv_files/datatset.csv"
+                    echo "" >> "${WORKDIR}/csv_files/datatset.csv"
                 fi
             done
         fi
