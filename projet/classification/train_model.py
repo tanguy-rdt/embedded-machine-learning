@@ -80,7 +80,7 @@ def main():
     estimator = get_estimator(estimator_name)
 
     descriptors, labels = load_dataset(dataset_path)
-    descriptors = StandardScaler().fit_transform(descriptors)
+    #descriptors = StandardScaler().fit_transform(descriptors)
     X_train, X_test, y_train, y_test = train_test_split(descriptors, labels, test_size=0.33, random_state=42) 
 
     for e in estimator:

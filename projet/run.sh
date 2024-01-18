@@ -10,6 +10,8 @@ usage() {
     echo "Usage: $0 [COMMAND] [OPTION]"
     echo "Command:"
     echo "  create_dataset        -- Convert audio files to CSV (time/frequency data and descriptors) and create dataset"
+    echo "  train_model           -- Convert audio files to CSV (time/frequency data and descriptors) and create dataset"
+    echo "  predict               -- Convert audio files to CSV (time/frequency data and descriptors) and create dataset"
     echo "  help                  -- Show this message"
     echo "Options:"
     echo "  -d, --debug           -- Enable debug mode"
@@ -68,6 +70,18 @@ train_model(){
     python ${WORKDIR}/classification/train_model.py --dataset 'csv_files/datatset.csv' --estimator all
 }
 
+predict(){
+    if [ -d "${WORKDIR}/venv" ]; then
+        source venv/bin/activate
+    else 
+        python3 -m venv ./venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+    fi
+
+    python ${WORKDIR}/classification/predict.py --dataset 'csv_files/pop/pop.00087/descriptor.csv' --model 'model/RandomForestClassifier.joblib'
+}
+
 shift
 while [ "$1" != "" ]; do
     case $1 in
@@ -85,6 +99,9 @@ case ${COMMAND} in
         ;;
     'train_model')
         train_model
+        ;;
+    'predict')
+        predict
         ;;
     'help'|'')
         usage
