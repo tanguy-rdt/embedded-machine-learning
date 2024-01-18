@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 FILE_NAME=$(readlink -f "$0")
 WORKDIR=$(dirname "${FILE_NAME}")
@@ -56,6 +56,18 @@ create_dataset() {
     done
 }
 
+train_model(){
+    if [ -d "${WORKDIR}/venv" ]; then
+        source venv/bin/activate
+    else 
+        python3 -m venv ./venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+    fi
+
+    python ${WORKDIR}/classification/train_model.py --dataset 'csv_files/datatset.csv' --estimator all
+}
+
 shift
 while [ "$1" != "" ]; do
     case $1 in
@@ -70,6 +82,9 @@ done
 case ${COMMAND} in 
     'create_dataset')
         create_dataset
+        ;;
+    'train_model')
+        train_model
         ;;
     'help'|'')
         usage
