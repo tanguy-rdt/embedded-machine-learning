@@ -67,7 +67,7 @@ train_model(){
         pip install -r requirements.txt
     fi
 
-    python ${WORKDIR}/classification/train_model.py --dataset 'csv_files/datatset.csv' --estimator all
+    python ${WORKDIR}/classification_python/train_model.py --dataset 'csv_files/datatset.csv' --estimator all
 }
 
 predict(){
@@ -79,7 +79,7 @@ predict(){
         pip install -r requirements.txt
     fi
 
-    python ${WORKDIR}/classification/predict.py --dataset 'csv_files/pop/pop.00087/descriptor.csv' --model 'model/RandomForestClassifier.joblib'
+    python ${WORKDIR}/classification_python/predict.py --dataset 'csv_files/dataset_test.csv' --model 'model_python/RandomForestClassifier.joblib'
 }
 
 shift
