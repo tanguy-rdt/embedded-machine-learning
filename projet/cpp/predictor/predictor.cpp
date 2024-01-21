@@ -1,6 +1,7 @@
 #include "predictor.h"
 #include "DecisionTreeClassifier.h"
 #include "RandomForestClassifier.h"
+#include "LinearSVC.h"
 
 Predictor::Predictor() {
 }
@@ -30,7 +31,7 @@ void Predictor::predict(const char* datasetPath, const char* model_name, const c
             decisionTreePredict(descriptors[i].data(), descriptors[i].size());
         }
         else if (!strcmp(model_name, "linear_svc")) {
-            linearSVCPredict(descriptors[i].data(), descriptors[i].size());
+            linearSVCPredict(descriptors[i].data(), descriptors[i].size(), 10);
         }
 
         if (label[_lastPrediction] == labels[i]) {
@@ -51,21 +52,16 @@ void Predictor::decisionTreePredict(const float *features, int32_t features_leng
     _predictions.push_back(_lastPrediction);
 }
 
-void Predictor::linearSVCPredict(const float *features, int features_length){
-    std::vector<std::vector<float>> parameters;
-    std::vector<float> bias;
-
-    loadLinearSVCParameters(parameters, bias);
-
+void Predictor::linearSVCPredict(const float *features, int features_length, int nbCls){
     int bestClass = -1;
     float bestScore = 0.0f;
 
-    for (size_t i = 0; i < parameters.size(); ++i) {
+    for (size_t i = 0; i < nbCls; ++i) {
         float score = 0.0f;
         for (size_t j = 0; j < features_length; ++j) {
-            score += features[j] * parameters[i][j];
+            score += features[j] * svc_model_coefficients[i][j];
         }
-        score += bias[i];
+        score += svc_model_intercepts[i];
 
         if (score > bestScore) {
             bestScore = score;
@@ -75,40 +71,6 @@ void Predictor::linearSVCPredict(const float *features, int features_length){
 
     _lastPrediction = bestClass;
     _predictions.push_back(_lastPrediction);
-}
-
-void Predictor::loadLinearSVCParameters(std::vector<std::vector<float>>& parameters, std::vector<float>& bias) {
-    std::ifstream file("cpp/model/LinearSVC.txt");
-    std::string line;
-
-    if (!file.is_open()) {
-        std::cerr << "Erreur : Impossible d'ouvrir le fichier" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    std::vector<float> currentModelParameters;
-    while (getline(file, line)) {
-        if (line.empty()) { 
-            if (!currentModelParameters.empty()) {
-                bias.push_back(currentModelParameters.back());
-                currentModelParameters.pop_back();
-                parameters.push_back(currentModelParameters);
-                currentModelParameters.clear();
-            }
-        } 
-        else {
-            std::stringstream ss(line);
-            float param;
-
-            if (ss >> param) {
-                currentModelParameters.push_back(param);
-            }
-        }
-    }
-
-    if (!currentModelParameters.empty()) {
-        parameters.push_back(currentModelParameters);
-    }
 }
 
 void Predictor::loadDataset(const std::string& path, std::vector<std::vector<float>>& descriptors, std::vector<std::string>& labels) {

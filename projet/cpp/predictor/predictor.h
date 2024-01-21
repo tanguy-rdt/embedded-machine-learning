@@ -22,8 +22,7 @@ public:
 private:
     void randomForestPredict(const float *features, int32_t features_length);
     void decisionTreePredict(const float *features, int32_t features_length);
-    void linearSVCPredict(const float *features, int features_length);
-    void loadLinearSVCParameters(std::vector<std::vector<float>>& parameters, std::vector<float>& bias);
+    void linearSVCPredict(const float *features, int features_length, int nbCls);
     void loadDataset(const std::string& path, std::vector<std::vector<float>>& descriptors, std::vector<std::string>& labels);
     void loadScalerParams(const std::string& path, std::vector<float>& mean, std::vector<float>& scale);
     void normalizeData(std::vector<std::vector<float>>& data, const std::vector<float>& mean, const std::vector<float>& scale);

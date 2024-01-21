@@ -62,11 +62,23 @@ def train_model(estimator, X_train, y_train, param_grid=None):
         model_c = emlearn.convert(model)
         c_source = model_c.save(file='resources/model_c/'+model.__class__.__name__+'.h')
     elif model.__class__.__name__ == 'LinearSVC':
-        with open("resources/model_c/"+model.__class__.__name__+'.txt', "w") as file:    
+        with open(f"resources/model_c/{model.__class__.__name__}.h", "w") as file:
+            file.write(f"#ifndef LINEAR_SVC_H\n")
+            file.write(f"#define LINEAR_SVC_H\n\n")
+            file.write("const float svc_model_coefficients[][1024] = {\n")  # Assurez-vous que 1024 correspond au nombre de features
+
             for class_index in range(model.coef_.shape[0]):  
-                for coef in model.coef_[class_index]:
-                    file.write(f"{coef}\n")
-                file.write(f"{model.intercept_[class_index]}\n\n")
+                file.write("    { ")
+                file.write(", ".join(f"{coef}" for coef in model.coef_[class_index]))
+                file.write(" },\n")
+            
+            file.write("};\n\n")
+
+            file.write("const float svc_model_intercepts[] = { ")
+            file.write(", ".join(f"{intercept}" for intercept in model.intercept_))
+            file.write(" };\n\n")
+
+            file.write("#endif")
 
     return model
 
