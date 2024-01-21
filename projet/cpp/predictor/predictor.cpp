@@ -3,6 +3,8 @@
 #include "RandomForestClassifier.h"
 #include "LinearSVC.h"
 
+
+
 Predictor::Predictor() {
 }
 
@@ -10,7 +12,6 @@ Predictor::~Predictor() {
 }
 
 void Predictor::predict(const char* datasetPath, const char* model_name, const char* scaler_path){
-    const char* label[10] = {"blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"};
     std::vector<std::vector<float>> descriptors;
     std::vector<std::string> labels;
     loadDataset(datasetPath, descriptors, labels);
@@ -23,54 +24,118 @@ void Predictor::predict(const char* datasetPath, const char* model_name, const c
     _predictions.clear();
     std::vector<int>().swap(_predictions);
     _nbGoodPrediction = 0;
-    for (int i = 0; i < descriptors.size(); i++){
-        if (!strcmp(model_name, "random_forest")) {
-            randomForestPredict(descriptors[i].data(), descriptors[i].size());
-        }
-        else if (!strcmp(model_name, "decision_tree")) {
-            decisionTreePredict(descriptors[i].data(), descriptors[i].size());
-        }
-        else if (!strcmp(model_name, "linear_svc")) {
-            linearSVCPredict(descriptors[i].data(), descriptors[i].size(), 10);
-        }
 
-        if (label[_lastPrediction] == labels[i]) {
-            _nbGoodPrediction++;
-        }
+    if (!strcmp(model_name, "random_forest")) {
+        randomForestPredict(descriptors, labels);
+    }
+    else if (!strcmp(model_name, "decision_tree")) {
+        decisionTreePredict(descriptors, labels);
+    }
+    else if (!strcmp(model_name, "linear_svc")) {
+        linearSVCPredict(descriptors, labels);
+    }
+    else if (!strcmp(model_name, "neural_network")) {
+        neuralNetworkPredict(descriptors, labels);
     }
 
     _lastAverage = static_cast<float>(_nbGoodPrediction)/descriptors.size();
 }
 
-void Predictor::randomForestPredict(const float *features, int32_t features_length) {
-    _lastPrediction = RandomForestClassifier_predict(features, features_length);
-    _predictions.push_back(_lastPrediction);
-}
-
-void Predictor::decisionTreePredict(const float *features, int32_t features_length){
-    _lastPrediction = DecisionTreeClassifier_predict(features, features_length);
-    _predictions.push_back(_lastPrediction);
-}
-
-void Predictor::linearSVCPredict(const float *features, int features_length, int nbCls){
-    int bestClass = -1;
-    float bestScore = 0.0f;
-
-    for (size_t i = 0; i < nbCls; ++i) {
-        float score = 0.0f;
-        for (size_t j = 0; j < features_length; ++j) {
-            score += features[j] * svc_model_coefficients[i][j];
-        }
-        score += svc_model_intercepts[i];
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestClass = i;
+void Predictor::randomForestPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels) {
+    for (int i = 0; i < features.size(); i++){
+        _lastPrediction = RandomForestClassifier_predict(features[i].data(), features[i].size());
+        _predictions.push_back(_lastPrediction);
+        if (_lastPrediction == std::stoi(labels[i])) {
+            _nbGoodPrediction++;
         }
     }
+}
 
-    _lastPrediction = bestClass;
-    _predictions.push_back(_lastPrediction);
+void Predictor::decisionTreePredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels){
+    for (int i = 0; i < features.size(); i++){
+        _lastPrediction = DecisionTreeClassifier_predict(features[i].data(), features[i].size());
+        _predictions.push_back(_lastPrediction);
+        if (_lastPrediction == std::stoi(labels[i])) {
+            _nbGoodPrediction++;
+        }
+    }
+}
+
+void Predictor::linearSVCPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels){
+    for (int i = 0; i < features.size(); i++){
+        int bestClass = -1;
+        float bestScore = 0.0f;
+
+        for (size_t cls = 0; cls < 10; ++cls) {
+            float score = 0.0f;
+            for (size_t j = 0; j < features[i].size(); ++j) {
+                score += features[i][j] * svc_model_coefficients[cls][j];
+            }
+            score += svc_model_intercepts[cls];
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestClass = cls;
+            }
+        }
+
+        _lastPrediction = bestClass;
+        _predictions.push_back(_lastPrediction);                
+        
+        if (_lastPrediction == std::stoi(labels[i])) {
+            _nbGoodPrediction++;
+        }
+    }
+}
+
+void Predictor::neuralNetworkPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels){
+    auto model = tflite::FlatBufferModel::BuildFromFile("cpp/model/NeuralNetwork.tflite");
+    if (!model) {
+        std::cerr << "Failed to load model" << std::endl;
+        return;
+    }
+
+    tflite::ops::builtin::BuiltinOpResolver resolver;
+    std::unique_ptr<tflite::Interpreter> interpreter;
+    tflite::InterpreterBuilder(*model, resolver)(&interpreter);
+    if (!interpreter) {
+        std::cerr << "Failed to construct interpreter" << std::endl;
+        return;
+    }
+
+    if (interpreter->AllocateTensors() != kTfLiteOk) {
+        std::cerr << "Failed to allocate tensors" << std::endl;
+        return;
+    }
+
+    float* input = interpreter->typed_tensor<float>(0);
+
+    for (int i = 0; i < features.size(); i++){
+		for (int j = 0; j < features[i].size(); j++){
+			input[j]=features[i][j];
+		}
+
+        interpreter->Invoke();
+
+        float *output=interpreter->typed_output_tensor<float>(0);
+
+        float max_score=output[0];
+        int class_predicted=0;
+
+		for (int j = 1; j < 10; j++){
+			if (output[j] > max_score) {
+				max_score=output[j];
+				class_predicted=j;
+			}
+		}
+
+        _lastPrediction = class_predicted;
+        _predictions.push_back(_lastPrediction);       
+
+		if (class_predicted == std::stoi(labels[i])){
+            _nbGoodPrediction++;
+		}
+    }
 }
 
 void Predictor::loadDataset(const std::string& path, std::vector<std::vector<float>>& descriptors, std::vector<std::string>& labels) {

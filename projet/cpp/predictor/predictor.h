@@ -8,6 +8,10 @@
 #include <string>
 #include <cstring>
 
+#include "tensorflow/lite/interpreter.h"
+#include "tensorflow/lite/model.h"
+#include "tensorflow/lite/kernels/register.h"
+
 class Predictor {
 public:
     Predictor();
@@ -20,9 +24,10 @@ public:
     float getLastAverage();
 
 private:
-    void randomForestPredict(const float *features, int32_t features_length);
-    void decisionTreePredict(const float *features, int32_t features_length);
-    void linearSVCPredict(const float *features, int features_length, int nbCls);
+    void randomForestPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels);
+    void decisionTreePredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels);
+    void linearSVCPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels);
+    void neuralNetworkPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels);
     void loadDataset(const std::string& path, std::vector<std::vector<float>>& descriptors, std::vector<std::string>& labels);
     void loadScalerParams(const std::string& path, std::vector<float>& mean, std::vector<float>& scale);
     void normalizeData(std::vector<std::vector<float>>& data, const std::vector<float>& mean, const std::vector<float>& scale);

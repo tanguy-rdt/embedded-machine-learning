@@ -90,10 +90,10 @@ predict(){
     fi
 
     if [ "${LANG}" = "cpp" ]; then
-        ./cpp/e_machine_learning.o predict "resources/csv_files/dataset_test.csv" "resources/scaler.txt" "random_forest" "decision_tree" "linear_svc"
+        ./cpp/e_machine_learning.o predict "resources/csv_files/dataset_test.csv" "resources/scaler.txt" "random_forest" "decision_tree" "linear_svc" "neural_network"
     elif [ "${LANG}" = "python" ]; then 
         source venv/bin/activate
-        python ${WORKDIR}/python/main.py predict --dataset 'resources/csv_files/dataset_test.csv' --model 'resources/model_python/LinearSVC.joblib'
+        python ${WORKDIR}/python/main.py predict --dataset 'resources/csv_files/dataset_test.csv' --model 'resources/model/NeuralNetwork.tflite'
     else 
         echo "Unknow language"
     fi
