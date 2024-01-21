@@ -17,4 +17,4 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/model)
 
 
 add_executable(e_machine_learning.o main.cpp)
-target_link_libraries(e_machine_learning.o AudioPreprocessing AuUtils FFTUtils Constants Predictor Common)
+target_link_libraries(e_machine_learning.o AudioPreprocessing AuUtils FFTUtils Constants Predictor)

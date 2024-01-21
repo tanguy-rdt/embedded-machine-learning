@@ -1,5 +1,4 @@
 #include "predictor.h"
-#include "common.h"
 #include "DecisionTreeClassifier.h"
 #include "RandomForestClassifier.h"
 
@@ -13,11 +12,11 @@ void Predictor::predict(const char* datasetPath, const char* model_name, const c
     const char* label[10] = {"blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"};
     std::vector<std::vector<float>> descriptors;
     std::vector<std::string> labels;
-    load_dataset(datasetPath, descriptors, labels);
+    loadDataset(datasetPath, descriptors, labels);
 
     std::vector<float> mean, scale;
-    load_scaler_params(scaler_path, mean, scale);
-    normalize_data(descriptors, mean, scale);
+    loadScalerParams(scaler_path, mean, scale);
+    normalizeData(descriptors, mean, scale);
 
 
     _predictions.clear();
@@ -109,6 +108,66 @@ void Predictor::loadLinearSVCParameters(std::vector<std::vector<float>>& paramet
 
     if (!currentModelParameters.empty()) {
         parameters.push_back(currentModelParameters);
+    }
+}
+
+void Predictor::loadDataset(const std::string& path, std::vector<std::vector<float>>& descriptors, std::vector<std::string>& labels) {
+    std::ifstream file(path);
+    if (file.fail()) {
+        std::cerr << "Erreur : Impossible d'ouvrir le fichier '" << path << "'" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::vector<float> descriptor;
+        float value;
+        for (int i = 0; i < 1024; ++i) {
+            if (!(ss >> value)) {
+                std::cerr << "Erreur de lecture de valeur." << std::endl;
+                break;
+            }
+            descriptor.push_back(value);
+            if (ss.peek() == ',') ss.ignore();
+        }
+
+        std::string label;
+        if (ss >> label) {
+            size_t pos = label.find(".");
+            if (pos != std::string::npos) {
+                label = label.substr(0, pos);
+            }
+            labels.push_back(label);
+        }
+        descriptors.push_back(descriptor);
+    }
+}
+
+void Predictor::loadScalerParams(const std::string& path, std::vector<float>& mean, std::vector<float>& scale) {
+    std::ifstream file(path);
+    std::string line;
+
+    if (!file.is_open()) {
+        std::cerr << "Erreur : Impossible d'ouvrir le fichier " << path << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    while (getline(file, line)) {
+        std::stringstream ss(line);
+        float mean_value, scale_value;
+        if (ss >> mean_value >> scale_value) {
+            mean.push_back(mean_value);
+            scale.push_back(scale_value);
+        }
+    }
+}
+
+void Predictor::normalizeData(std::vector<std::vector<float>>& data, const std::vector<float>& mean, const std::vector<float>& scale) {
+    for (auto& row : data) {
+        for (size_t i = 0; i < row.size(); ++i) {
+            row[i] = (row[i] - mean[i]) / scale[i];
+        }
     }
 }
 
