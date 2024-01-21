@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV, cross_val_score, KFold
@@ -17,7 +17,7 @@ def get_estimator(estimator_name):
     estimator = []
 
     if 'all' in estimator_name:
-        estimator = [RandomForestClassifier(), DecisionTreeClassifier(), LogisticRegression(), SVC(), MLPClassifier()]
+        estimator = [RandomForestClassifier(), DecisionTreeClassifier(), LogisticRegression(), LinearSVC(), MLPClassifier()]
     else:
         for name in estimator_name:
             if name == 'random_forest':
@@ -26,8 +26,8 @@ def get_estimator(estimator_name):
                 estimator.append(DecisionTreeClassifier())
             elif name == 'logistic_regression':
                 estimator.append(LogisticRegression())
-            elif name == 'svm':
-                estimator.append(SVC())
+            elif name == 'LinearSVC':
+                estimator.append(LinearSVC())
             elif name == 'neural_network':
                 estimator.append(MLPClassifier())
             else:
@@ -56,9 +56,17 @@ def train_model(estimator, X_train, y_train, param_grid=None):
 
     model.fit(X_train, y_train)
 
+
+
     if model.__class__.__name__ in ["RandomForestClassifier", "DecisionTreeClassifier"]:
         model_c = emlearn.convert(model)
         c_source = model_c.save(file='resources/model_c/'+model.__class__.__name__+'.h')
+    elif model.__class__.__name__ == 'LinearSVC':
+        with open("resources/model_c/"+model.__class__.__name__+'.txt', "w") as file:    
+            for class_index in range(model.coef_.shape[0]):  
+                for coef in model.coef_[class_index]:
+                    file.write(f"{coef}\n")
+                file.write(f"{model.intercept_[class_index]}\n\n")
 
     return model
 

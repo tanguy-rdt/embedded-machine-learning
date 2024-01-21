@@ -33,13 +33,22 @@ parse_options() {
     shift $((OPTIND -1))
 }
 
-create_dataset() {
+setup_project() {
     cd "${WORKDIR}/cpp" || exit
     cmake -P CMakeClean.cmake
     cmake .
     make 
     cd .. || exit
 
+    #if [ -d "${WORKDIR}/venv" ]; then
+    #    rm -rf venv
+    #fi
+    #python3 -m venv ./venv
+    #source venv/bin/activate
+    #pip install -r requirements.txt
+}
+
+create_dataset() {
     if [ -d "${WORKDIR}/resources/csv_files" ]; then
         rm -r "${WORKDIR}/resources/csv_files"
     fi
@@ -68,15 +77,8 @@ train_model(){
         usage
         exit 1
     fi
-
-    if [ -d "${WORKDIR}/venv" ]; then
-        source venv/bin/activate
-    else 
-        python3 -m venv ./venv
-        source venv/bin/activate
-        pip install -r requirements.txt
-    fi
-
+    
+    source venv/bin/activate
     python ${WORKDIR}/python/main.py train --dataset 'resources/csv_files/dataset.csv' --estimator all
 }
 
@@ -88,28 +90,19 @@ predict(){
     fi
 
     if [ "${LANG}" = "cpp" ]; then
-        cd "${WORKDIR}/cpp" || exit
-        cmake -P CMakeClean.cmake
-        cmake .
-        make 
-        cd .. || exit
-        ./cpp/e_machine_learning.o predict "resources/csv_files/dataset_test.csv" "random_forest" "resources/scaler.txt"
+        ./cpp/e_machine_learning.o predict "resources/csv_files/dataset_test.csv" "resources/scaler.txt" "random_forest" "decision_tree" "linear_svc"
     elif [ "${LANG}" = "python" ]; then 
-        if [ -d "${WORKDIR}/venv" ]; then
-            source venv/bin/activate
-        else 
-            python3 -m venv ./venv
-            source venv/bin/activate
-            pip install -r requirements.txt
-        fi
-
-        python ${WORKDIR}/python/main.py predict --dataset 'resources/csv_files/dataset_test.csv' --model 'resources/model_python/RandomForestClassifier.joblib'
+        source venv/bin/activate
+        python ${WORKDIR}/python/main.py predict --dataset 'resources/csv_files/dataset_test.csv' --model 'resources/model_python/LinearSVC.joblib'
     else 
         echo "Unknow language"
     fi
 }
 
 case ${COMMAND} in 
+    'setup_project')
+        setup_project
+        ;;
     'create_dataset')
         create_dataset
         ;;

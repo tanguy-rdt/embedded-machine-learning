@@ -15,11 +15,15 @@ void createDataset(std::string audioPath, std::string outputPath, std::string au
     auPreprocessing.extractDescriptor(auData.samples);
 }
 
-void predict(std::string datasetPath, std::string model_name, std::string scaler_path) {
+void predict(std::string datasetPath, std::string scalerPath, std::vector<std::string> modelName) {
     Predictor predictor;
 
-    predictor.predict(datasetPath.c_str(), model_name.c_str(), scaler_path.c_str());
-    std::cout << "Average: " << predictor.getLastAverage() << std::endl;
+    for(const auto& model: modelName){
+        predictor.predict(datasetPath.c_str(), model.c_str(), scalerPath.c_str());
+        std::cout <<  model << std::endl;
+        std::cout << "\tAverage: " << predictor.getLastAverage() << std::endl;
+        std::cout << "\tRatio: " << predictor.getNbGoodPrediction() << "/" << predictor.getPrediction().size() << "\n" << std::endl;
+    }    
 }
 
 int main(int argc, char* argv[]) {
@@ -40,14 +44,20 @@ int main(int argc, char* argv[]) {
         std::string audioType = argv[4];
         createDataset(audioPath, outputPath, audioType);
     } else if (command == "predict") {
-        if (argc != 5) {
-            std::cerr << "Usage: " << argv[0] << " predict <dataset> <model_name> <scaler_path>\n";
+        if (argc < 5) {
+            std::cerr << "Usage: " << argv[0] << " predict <dataset> <scaler_path> <model_name>\n";
             return 1;
         }
+
         std::string datasetPath = argv[2];
-        std::string modelName = argv[3];
-        std::string scalerPath = argv[4];
-        predict(datasetPath, modelName, scalerPath);
+        std::string scalerPath = argv[3];
+        std::vector<std::string> modelName;
+
+        for (int i = 4; i < argc; i++){
+            modelName.push_back(argv[i]);  
+        }
+
+        predict(datasetPath, scalerPath, modelName);
     } else if (command == "train") {
         if (argc != 4) {
             std::cerr << "Usage: " << argv[0] << " train <dataset> <estimator>\n";
