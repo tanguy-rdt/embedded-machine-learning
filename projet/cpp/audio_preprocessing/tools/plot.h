@@ -1,5 +1,3 @@
-#ifdef DEBUG
-
 #ifndef PLOT_H
 #define PLOT_H
 
@@ -62,5 +60,4 @@ void descriptorPlot(const std::vector<T> mu, const std::vector<T> sigma, const i
 
 
 
-#endif
 #endif

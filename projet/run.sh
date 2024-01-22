@@ -15,7 +15,7 @@ usage() {
 }
 
 parse_options() {
-    while getopts ":l:t:d" opt; do
+    while getopts ":l:td" opt; do
         case ${opt} in
             l)
                 LANG=${OPTARG}
@@ -42,28 +42,30 @@ parse_options() {
 }
 
 setup_project() {
-    cd "${WORKDIR}/cpp" || exit
-    cmake -P CMakeClean.cmake
+    if [ ! -d "${WORKDIR}/build" ]; then
+        mkdir "${WORKDIR}/build"
+    else 
+        rm -r "${WORKDIR}/build"
+    fi
+    
 
     if [ "${TARGET}" = true ]; then
-        cmake -DCOMPILE_FOR_RPI=ON .
+        cmake -DCOMPILE_FOR_RPI=ON -S "${WORKDIR}/cpp/" -B "${WORKDIR}/build/"
     else
         if [ "${DEBUG}" = true ]; then
-            cmake -DDEBUG=ON .
+            cmake -DDEBUG=ON  -S "${WORKDIR}/cpp/" -B "${WORKDIR}/build/"
         else
-            cmake .
+            cmake  -S "${WORKDIR}/cpp/" -B "${WORKDIR}/build/"
         fi
 
-        if [ -d "${WORKDIR}/venv" ]; then
-            rm -rf ${WORKDIR}/venv
+        if [ -d !"${WORKDIR}/venv" ]; then
+            python3 -m venv ${WORKDIR}/venv
         fi
-        python3 -m venv ${WORKDIR}/venv
         source ${WORKDIR}/venv/bin/activate
         pip install -r ${WORKDIR}/requirements.txt
     fi
 
-    make 
-    cd .. || exit
+    make -C "${WORKDIR}/build/"
 }
 
 create_dataset() {
@@ -72,7 +74,7 @@ create_dataset() {
     fi
 
     if [ "${DEBUG}" = true ]; then
-        ./cpp/e_machine_learning.o create_dataset "${WORKDIR}/au_files/blues/blues.00000.au" "${WORKDIR}/resources/csv_files/debug.csv" "blues"
+        ./build/e_machine_learning.o create_dataset "${WORKDIR}/resources/au_files/blues/blues.00000.au" "${WORKDIR}/resources/csv_files/debug.csv" "blues"
         exit
     fi
 
@@ -85,7 +87,7 @@ create_dataset() {
                     file_name=${file_name_with_extension%.au}
                     echo "Prepare au file ${file_name}"
                     mkdir -p "${WORKDIR}/resources/csv_files/${type_name}/${file_name}/"
-                    ./cpp/e_machine_learning.o create_dataset "${file_path}" "${WORKDIR}/resources/csv_files/${type_name}/${file_name}/" "${type_name}"
+                    ./build/e_machine_learning.o create_dataset "${file_path}" "${WORKDIR}/resources/csv_files/${type_name}/${file_name}/" "${type_name}"
                     cat "${WORKDIR}/resources/csv_files/${type_name}/${file_name}/descriptor.csv" >> "${WORKDIR}/resources/csv_files/dataset.csv"
                     echo "" >> "${WORKDIR}/resources/csv_files/dataset.csv"
                 fi
@@ -107,9 +109,12 @@ predict(){
     fi
 
     if [ "${LANG}" = "cpp" ]; then
-        ./cpp/e_machine_learning.o predict "${WORKDIR}/resources/csv_files/dataset_test.csv" "${WORKDIR}/resources/scaler.txt" "random_forest" "decision_tree" "linear_svc" "neural_network"
+        ./build/e_machine_learning.o predict "${WORKDIR}/resources/csv_files/dataset_test.csv" "${WORKDIR}/resources/scaler.txt" "random_forest" "decision_tree" "linear_svc" "neural_network"
     elif [ "${LANG}" = "python" ]; then 
         source ${WORKDIR}/venv/bin/activate
+        python ${WORKDIR}/python/main.py predict --dataset "${WORKDIR}/resources/csv_files/dataset_test.csv" --model "${WORKDIR}/resources/model/RandomForestClassifier.joblib"
+        python ${WORKDIR}/python/main.py predict --dataset "${WORKDIR}/resources/csv_files/dataset_test.csv" --model "${WORKDIR}/resources/model/DecisionTreeClassifier.joblib"
+        python ${WORKDIR}/python/main.py predict --dataset "${WORKDIR}/resources/csv_files/dataset_test.csv" --model "${WORKDIR}/resources/model/LinearSVC.joblib"
         python ${WORKDIR}/python/main.py predict --dataset "${WORKDIR}/resources/csv_files/dataset_test.csv" --model "${WORKDIR}/resources/model/NeuralNetwork.tflite"
     else 
         echo "ERROR -- opt -l, Unknow language"
@@ -122,6 +127,7 @@ case ${COMMAND} in
         setup_project
         ;;
     'create_dataset')
+        parse_options "$@"
         create_dataset
         ;;
     'train_model')

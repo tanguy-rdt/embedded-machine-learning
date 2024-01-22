@@ -1,17 +1,19 @@
 import pandas as pd
 import numpy as np
 import argparse
+import time
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import LinearSVC
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV, cross_val_score, KFold
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Flatten, Dropout
 from tensorflow.keras.utils import to_categorical
 from joblib import dump
 import emlearn
@@ -20,6 +22,9 @@ def NeuralNetwork(input_dim, num_classes):
     model = Sequential()
     model.add(Dense(128, activation='relu', input_dim=input_dim))
     model.add(Dense(64, activation='relu'))
+    model.add(Flatten())
+    model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(num_classes, activation='softmax'))
 
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
@@ -114,12 +119,27 @@ def save_model(model):
         
 def estimate_model(model, X_test, y_test):
     if isinstance(model, tf.keras.Model):
+        start_time = time.time()
         loss, accuracy = model.evaluate(X_test, y_test)
-        print(f"Loss: {loss}, Accuracy: {accuracy}")
+        end_time = time.time() 
+        elapsed_time_ms = (end_time - start_time) * 1000
+
+        print(f"Model: Neural Network \n\tAccuracy: {accuracy:.2f} \n\tExec time: {elapsed_time_ms:.2f}ms")
     else:
+        start_time = time.time()
         predictions = model.predict(X_test)
-        print(f"\nMatrice de Confusion - {model.__class__.__name__}:", confusion_matrix(y_test, predictions), sep="\n")
-        print(f"\nRapport de Classification - {model.__class__.__name__}:", classification_report(y_test, predictions), sep="\n")
+        end_time = time.time() 
+        elapsed_time_ms = (end_time - start_time) * 1000
+        cm = confusion_matrix(y_test, predictions, labels=model.classes_)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)      
+        disp.plot()
+        plt.title(str(model.__class__.__name__))
+        plt.show()
+        correct_predictions = sum(predictions == y_test)
+        total_predictions = len(y_test)
+        accuracy = correct_predictions / total_predictions
+        print(f"Model: {model.__class__.__name__} \n\tAccuracy: {accuracy:.2f} \n\tRatio: {correct_predictions}/{total_predictions} \n\tExec time: {elapsed_time_ms:.2f}ms")
+
 
 def run(dataset_path, estimator_name):
     estimator = get_estimator(estimator_name)
@@ -139,6 +159,7 @@ def run(dataset_path, estimator_name):
         model = train_model(e, X_train, y_train)
         save_model(model)
         estimate_model(model, X_test, y_test)
+        
 
 if __name__ == '__main__':
     run("resources/csv_files/datatset.csv", "all")

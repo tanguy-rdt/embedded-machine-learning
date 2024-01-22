@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import time
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -64,29 +65,32 @@ def run(dataset_path, model_path):
     model_extension = os.path.splitext(model_path)[1]
     if model_extension == '.joblib':
         model = load(model_path)
+        start_time = time.time()
         predictions = model.predict(descriptors)
+        end_time = time.time() 
+        elapsed_time_ms = (end_time - start_time) * 1000
 
         cpt = 0
         for index, pred in enumerate(predictions):
             if labels[index] == pred:
                 cpt += 1
-
-        print(f"Correct prediction: {cpt}/{len(descriptors)}")
-        print(f"Accuracy: {cpt/len(descriptors)}")
+        
+        print(f"Model: {model.__class__.__name__} \n\tAccuracy: {cpt/len(descriptors)} \n\tRatio: {cpt}/{len(descriptors)} \n\tExec time: {elapsed_time_ms:.2f}ms")
     elif model_extension == '.tflite':
         interpreter = load_tflite_model(model_path)
 
         cpt = 0
+        start_time = time.time()
         for index, desc in enumerate(descriptors):
             pred = run_tflite_model(interpreter, [desc])
             predicted_label = np.argmax(pred)
 
             if labels[index] == predicted_label:
                 cpt += 1
+        end_time = time.time() 
+        elapsed_time_ms = (end_time - start_time) * 1000
 
-        print(f"Correct prediction: {cpt}/{len(descriptors)}")
-        print(f"Accuracy: {cpt/len(descriptors)}")
-
+        print(f"Model: Neural Network (tflite inferences) \n\tAccuracy: {cpt/len(descriptors)} \n\tRatio: {cpt}/{len(descriptors)} \n\tExec time: {elapsed_time_ms:.2f}ms")
     else:
         print("Unsupported model type")
 

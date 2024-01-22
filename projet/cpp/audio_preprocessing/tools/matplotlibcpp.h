@@ -1,4 +1,3 @@
-#ifdef DEBUG
 #pragma once
 
 // Python headers must be included before any system headers, since
@@ -3005,4 +3004,3 @@ private:
 
 } // end namespace matplotlibcpp
 
-#endif
