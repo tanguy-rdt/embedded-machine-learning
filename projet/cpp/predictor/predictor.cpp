@@ -2,8 +2,7 @@
 #include "DecisionTreeClassifier.h"
 #include "RandomForestClassifier.h"
 #include "LinearSVC.h"
-
-
+#include <ctime>
 
 Predictor::Predictor() {
 }
@@ -35,13 +34,18 @@ void Predictor::predict(const char* datasetPath, const char* model_name, const c
         linearSVCPredict(descriptors, labels);
     }
     else if (!strcmp(model_name, "neural_network")) {
+        #ifdef COMPILE_FOR_RPI
         neuralNetworkPredict(descriptors, labels);
+        #else
+        std::cout << "ERROR: To use the neural network model you need to be on the target" << std::endl;
+        #endif
     }
 
     _lastAverage = static_cast<float>(_nbGoodPrediction)/descriptors.size();
 }
 
 void Predictor::randomForestPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels) {
+    _begin = clock();
     for (int i = 0; i < features.size(); i++){
         _lastPrediction = RandomForestClassifier_predict(features[i].data(), features[i].size());
         _predictions.push_back(_lastPrediction);
@@ -49,9 +53,11 @@ void Predictor::randomForestPredict(std::vector<std::vector<float>>& features, s
             _nbGoodPrediction++;
         }
     }
+    _end = clock();
 }
 
 void Predictor::decisionTreePredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels){
+    _begin = clock();
     for (int i = 0; i < features.size(); i++){
         _lastPrediction = DecisionTreeClassifier_predict(features[i].data(), features[i].size());
         _predictions.push_back(_lastPrediction);
@@ -59,9 +65,11 @@ void Predictor::decisionTreePredict(std::vector<std::vector<float>>& features, s
             _nbGoodPrediction++;
         }
     }
+    _end = clock();
 }
 
 void Predictor::linearSVCPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels){
+    _begin = clock();
     for (int i = 0; i < features.size(); i++){
         int bestClass = -1;
         float bestScore = 0.0f;
@@ -86,8 +94,10 @@ void Predictor::linearSVCPredict(std::vector<std::vector<float>>& features, std:
             _nbGoodPrediction++;
         }
     }
+    _end = clock();
 }
 
+#ifdef COMPILE_FOR_RPI
 void Predictor::neuralNetworkPredict(std::vector<std::vector<float>>& features, std::vector<std::string>& labels){
     auto model = tflite::FlatBufferModel::BuildFromFile("cpp/model/NeuralNetwork.tflite");
     if (!model) {
@@ -110,6 +120,7 @@ void Predictor::neuralNetworkPredict(std::vector<std::vector<float>>& features, 
 
     float* input = interpreter->typed_tensor<float>(0);
 
+    _begin = clock();
     for (int i = 0; i < features.size(); i++){
 		for (int j = 0; j < features[i].size(); j++){
 			input[j]=features[i][j];
@@ -136,7 +147,9 @@ void Predictor::neuralNetworkPredict(std::vector<std::vector<float>>& features, 
             _nbGoodPrediction++;
 		}
     }
+    _end = clock();
 }
+#endif
 
 void Predictor::loadDataset(const std::string& path, std::vector<std::vector<float>>& descriptors, std::vector<std::string>& labels) {
     std::ifstream file(path);
@@ -214,5 +227,9 @@ int Predictor::getNbGoodPrediction(){
 
 float Predictor::getLastAverage(){
     return _lastAverage;
+}
+
+double Predictor::getLastExecTimeMs(){
+    return (double(_end - _begin) / CLOCKS_PER_SEC) * 1000.0;
 }
 

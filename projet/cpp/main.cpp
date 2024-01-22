@@ -1,18 +1,48 @@
 #include <iostream>
+#include <ostream>
 #include <string>
 
 #include "audio_preprocessing.h"
 #include "predictor.h"
 
+#ifdef DEBUG
+#include "plot.h"
+#endif
 
 void createDataset(std::string audioPath, std::string outputPath, std::string audioType){
     AudioPreprocessing auPreprocessing;
 
     auPreprocessing.setCsvPath(outputPath.c_str());
     auPreprocessing.setAudioType(audioType.c_str());
+
+    // ------
+    // Part 1: read audio file
     auPreprocessing.readAudioFile(audioPath.c_str());
+    const AudioPreprocessing::AuHeader auHeader = auPreprocessing.getAuHeader();
     const AudioPreprocessing::AuData auData = auPreprocessing.getAuData();
+
+    #ifdef DEBUG
+    std::cout << "Magic number: " << auHeader.magicNumber << std::endl;
+    std::cout << "Data shift: " << auHeader.dataShift << std::endl;
+    std::cout << "Data size: " << auHeader.dataSize << std::endl;
+    std::cout << "Encoding: " << auHeader.encoding << std::endl;
+    std::cout << "Sample rate: " << auHeader.fs << std::endl;
+    std::cout << "Canal number: " << auHeader.nbCanal << std::endl;
+    std::cout << "Sample number: " << auData.nbSample << std::endl;
+    #endif
+
+    #ifdef DEBUG
+    timePlot(auData.samples, auHeader.fs, "audio");
+    #endif
+
+    // ------
+    // Part 2: Extract descriptor
     auPreprocessing.extractDescriptor(auData.samples);
+    const AudioPreprocessing::AuDescriptor auDescriptor = auPreprocessing.getAuDescriptor();
+    
+    #ifdef DEBUG
+    descriptorPlot(auDescriptor.mu, auDescriptor.sigma, auHeader.fs, "Spectrogramme et descripteurs");
+    #endif
 }
 
 void predict(std::string datasetPath, std::string scalerPath, std::vector<std::string> modelName) {
@@ -22,7 +52,8 @@ void predict(std::string datasetPath, std::string scalerPath, std::vector<std::s
         predictor.predict(datasetPath.c_str(), model.c_str(), scalerPath.c_str());
         std::cout <<  model << std::endl;
         std::cout << "\tAverage: " << predictor.getLastAverage() << std::endl;
-        std::cout << "\tRatio: " << predictor.getNbGoodPrediction() << "/" << predictor.getPrediction().size() << "\n" << std::endl;
+        std::cout << "\tRatio: " << predictor.getNbGoodPrediction() << "/" << predictor.getPrediction().size() << std::endl;
+        std::cout << "\tExec time: " << predictor.getLastExecTimeMs() << "ms" << "\n" << std::endl;
     }    
 }
 

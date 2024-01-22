@@ -14,16 +14,6 @@ int AudioPreprocessing::readAudioFile(const char* path){
         return -1;
     }
 
-    char csvPath[1024];
-    sprintf(csvPath, "%s/data.csv", _csvPath);
-    std::ofstream csvFile(csvPath);
-
-    if (!csvFile) {
-        std::cerr << "Unable to create or write in the csv file" << csvPath << std::endl;
-        file.close();
-        return -2;
-    }
-
     _auHeader.magicNumber = read32Bits(file);
     _auHeader.dataShift = read32Bits(file);
     _auHeader.dataSize = read32Bits(file);
@@ -35,19 +25,16 @@ int AudioPreprocessing::readAudioFile(const char* path){
     file.seekg(_auHeader.dataShift, std::ios::beg);
     int sample = readSample(file);
     _auData.samples.push_back(sample);
-    csvFile << sample;
     _auData.nbSample++;
     while (!file.eof()) {
         int sample = readSample(file);
         if (!file.eof()){
-            csvFile << ", " << sample;
             _auData.samples.push_back(sample);
             _auData.nbSample++;
         }
     }
 
     file.close();
-    csvFile.close();
 
     normalizeData();
 

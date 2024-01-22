@@ -6,6 +6,8 @@ WORKDIR=$(dirname "${FILE_NAME}")
 COMMAND=${1}
 shift 
 
+DEBUG=false
+TARGET=false
 LANG=""
 
 usage() {
@@ -13,18 +15,24 @@ usage() {
 }
 
 parse_options() {
-    while getopts ":l:" opt; do
+    while getopts ":l:t:d" opt; do
         case ${opt} in
             l)
                 LANG=${OPTARG}
                 ;;
+            t)
+                TARGET=true
+                ;;
+            d)
+                DEBUG=true
+                ;;
             \?)
-                echo "Invalid option: -${OPTARG}" >&2
+                echo "ERROR -- Invalid option: -${OPTARG}" >&2
                 usage
                 exit 1
                 ;;
             :)
-                echo "Option -${OPTARG} requires an argument." >&2
+                echo "ERROR - Option -${OPTARG} requires an argument." >&2
                 usage
                 exit 1
                 ;;
@@ -36,21 +44,36 @@ parse_options() {
 setup_project() {
     cd "${WORKDIR}/cpp" || exit
     cmake -P CMakeClean.cmake
-    cmake .
+
+    if [ "${TARGET}" = true ]; then
+        cmake -DCOMPILE_FOR_RPI=ON .
+    else
+        if [ "${DEBUG}" = true ]; then
+            cmake -DDEBUG=ON .
+        else
+            cmake .
+        fi
+
+        if [ -d "${WORKDIR}/venv" ]; then
+            rm -rf ${WORKDIR}/venv
+        fi
+        python3 -m venv ${WORKDIR}/venv
+        source ${WORKDIR}/venv/bin/activate
+        pip install -r ${WORKDIR}/requirements.txt
+    fi
+
     make 
     cd .. || exit
-
-    #if [ -d "${WORKDIR}/venv" ]; then
-    #    rm -rf venv
-    #fi
-    #python3 -m venv ./venv
-    #source venv/bin/activate
-    #pip install -r requirements.txt
 }
 
 create_dataset() {
     if [ -d "${WORKDIR}/resources/csv_files" ]; then
         rm -r "${WORKDIR}/resources/csv_files"
+    fi
+
+    if [ "${DEBUG}" = true ]; then
+        ./cpp/e_machine_learning.o create_dataset "${WORKDIR}/au_files/blues/blues.00000.au" "${WORKDIR}/resources/csv_files/debug.csv" "blues"
+        exit
     fi
 
     for type_path in "${WORKDIR}/resources/au_files"/*; do
@@ -72,42 +95,36 @@ create_dataset() {
 }
 
 train_model(){
-    if [ -z "${LANG}" ]; then
-        echo "Language is required for prediction"
-        usage
-        exit 1
-    fi
-    
-    source venv/bin/activate
-    python ${WORKDIR}/python/main.py train --dataset 'resources/csv_files/dataset.csv' --estimator all
+    source ${WORKDIR}/venv/bin/activate
+    python ${WORKDIR}/python/main.py train --dataset "${WORKDIR}/resources/csv_files/dataset.csv" --estimator all
 }
 
 predict(){
     if [ -z "${LANG}" ]; then
-        echo "Language is required for prediction"
+        echo "ERROR -- Language is required for prediction"
         usage
         exit 1
     fi
 
     if [ "${LANG}" = "cpp" ]; then
-        ./cpp/e_machine_learning.o predict "resources/csv_files/dataset_test.csv" "resources/scaler.txt" "random_forest" "decision_tree" "linear_svc" "neural_network"
+        ./cpp/e_machine_learning.o predict "${WORKDIR}/resources/csv_files/dataset_test.csv" "${WORKDIR}/resources/scaler.txt" "random_forest" "decision_tree" "linear_svc" "neural_network"
     elif [ "${LANG}" = "python" ]; then 
-        source venv/bin/activate
-        python ${WORKDIR}/python/main.py predict --dataset 'resources/csv_files/dataset_test.csv' --model 'resources/model/NeuralNetwork.tflite'
+        source ${WORKDIR}/venv/bin/activate
+        python ${WORKDIR}/python/main.py predict --dataset "${WORKDIR}/resources/csv_files/dataset_test.csv" --model "${WORKDIR}/resources/model/NeuralNetwork.tflite"
     else 
-        echo "Unknow language"
+        echo "ERROR -- opt -l, Unknow language"
     fi
 }
 
 case ${COMMAND} in 
     'setup_project')
+        parse_options "$@"
         setup_project
         ;;
     'create_dataset')
         create_dataset
         ;;
     'train_model')
-        parse_options "$@"
         train_model
         ;;
     'predict')
@@ -118,7 +135,7 @@ case ${COMMAND} in
         usage
         ;;
     *)
-        echo "Unknow operation: ${COMMAND}"
+        echo "ERROR -- Unknow operation: ${COMMAND}"
         usage
         exit 1
         ;;
