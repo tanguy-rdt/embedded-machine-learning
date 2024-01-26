@@ -7,6 +7,7 @@ https://tanguy-rdt.github.io/embedded-machine-learning/
 ## Présentation du projet
 Au cours des 16h de Cr dédiés à cette matière nous avons conçu un programme permettant la reconnaissance de style musical d’après un extrait audio de 30 secondes.
 Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secondes, format .au, avec 10 classes (blues, classique, country, Disco, Hiphop, Jazz, Metal, Pop, Reggae, Rock).
+![Image Locale](cours/result_emb_proj.png)
 
 ## Installation
 
@@ -92,7 +93,7 @@ $ ./run.sh predict -l cpp
 ## Performances du système
 ![Image Locale](cours/pred_RF.png)
 
-En testant chacun des modèles on observe que le plus performant est le Random Forest avec une précision de 55% qui est un résultat attendu. Pour améliorer encore cette précision nous pourrions à l'avenir jouer sur les hyperparamètres pour affiner la prédiction.
+En testant chacun des modèles nous observons que le plus performant est le Random Forest avec une précision de 55% qui est un résultat attendu. Pour améliorer encore cette précision nous pourrions à l'avenir jouer sur les hyperparamètres pour affiner la prédiction.
 
 ## Contributing
 
