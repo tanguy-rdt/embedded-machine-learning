@@ -90,6 +90,9 @@ $ ./run.sh setup_project -t target
 $ ./run.sh predict -l cpp
 ```
 ## Performances du système
+![Image Locale](cours/pred_RF.png)
+
+En testant chacun des modèles on observe que le plus performant est le Random Forest avec une précision de 55% qui est un résultat attendu. Pour améliorer encore cette précision nous pourrions à l'avenir jouer sur les hyperparamètres pour affiner la prédiction.
 
 ## Contributing
 
