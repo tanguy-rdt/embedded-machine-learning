@@ -2,7 +2,7 @@
 Au cours des 16h de Cr dédiés à cette matière nous avons conçu un programme permettant la reconnaissance de style musical d’après un extrait audio de 30 secondes.
 Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secondes, format .au, avec 10 classes (blues, classique, country, Disco, Hiphop, Jazz, Metal, Pop, Reggae, Rock).
 
-![](.img/result_emb_proj.png)
+![](img/result_emb_proj.png)
 
 ## Utilisation
 
@@ -45,7 +45,7 @@ de réaliser une FFT est de calculer les descripteurs _mu_ et _sigma_ des fichie
 - __Mode Debug:__ \
 Ce mode réalise les mêmes étapes que le mode normal mais seulement un fichier audio est traité. Nous avons choisis le fichier audio _blues.00000.au_, mais si vous souhaitez utiliser un autre vous pouvez remplacer sont path par un autre dans le fichier `run.sh`. Le dataset sera sauvegardé dans le fichier `resources/csv_files/dataset_debug.csv`. A la suite de l'éxtraction des déscripteurs, ils sont afficher à l'aide `matplotlibcpp.cpp`.
 
-    ![](./.img/matplot.png)
+    ![](./img/matplot.png)
 
 ## Entrainement des models
 
@@ -67,6 +67,15 @@ A la fin de l'entrainement, tous nos modèles se trouve dans le dossier `resourc
 
 
 ## Prédiction à l'aide des models
+
+Nous avons mis en place deux type de prédiction, une en C++ et une en Python. Celle en python est plus simple à mettre en place grâce à la fonction `predict()`, nous l'avons principalement utilisé pour vérifier le bon fonctionnement de nos modèles. Nous allons donc décrire dans cette partie le fonctionnement de la prédiction en C++.\
+Au moment de la prédiction il est important d'utiliser notre dataset `resources/dataset_test.csv`, pour s'assurer que les données prédites sont inconnus par nos modèles. 
+
+- __Normalisation:__ La normalisation est une étape importante pour assurer une cohérence entre nos descripteurs utilisés pour la prédiction et ceux utilisés lors de l'entraînement des modèles. Nous avions utilisé un scaler qui est sauvegardé dans le fichier `resources/scaler.txt`. La méthode est simple : on l'ouvre pour récupérer nos poids, qui sont aussi nombreux que nos descripteurs, et on applique ces coefficients de normalisation à chaque descripteur de notre jeu de données. Cela permet de standardiser les données en fonction des valeurs apprises lors de l'entraînement, assurant ainsi que les valeurs d'entrée du modèle lors de la prédiction soient sur la même échelle que celles utilisées pendant l'entraînement. 
+- __Random Forest:__ La prédiction est simple, on utilise la fonction `RandomForestClassifier_predict` fournis par `emlearn` dans notre fichier `.h`, avec en arguments nos descripteurs et leurs nombres. La fonction nous retourne la prédiction de classe dans laquelle se trouve notre fichier audio.
+- __Decision Tree:__ La procédure est la même grâce à la fonction `DecisionTreeClassifier_predict`
+- __LinearSVC:__ Pour ce modèle, nous utilisons un codage manuel. Chaque descripteur est multiplié par un poids correspondant de notre modèle, situé au même indice, auquel on ajoute ensuite le terme de _biais_. Comme nous avons 10 classes, il est nécessaire de répéter cette étape 10 fois, en utilisant les 10 ensembles différents de vecteurs de poids et de biais. La multiplication de chaque descripteur par son poids associé, suivie de l'addition du biais, génère un score pour chaque classe. La classe avec le score le plus élevé est choisie comme la prédiction de notre modèle.
+- __Neural Network:__ Pour ce modèle, nous utilisons TensorFlow Lite pour effectuer des prédictions en temps réel. Le modèle est chargé à partir du fichier `.tflite` créer lors de l'entrainement puis un interpréteur TensorFlow Lite est construit. Une fois l'interpréteur configuré, nous allouons les tenseurs nécessaires. Pour chaque ensemble de caractéristiques, ces dernières sont chargées dans le tenseur d'entrée. L'interpréteur exécute alors le modèle, et les scores de sortie pour chaque classe sont récupérés. Finalement il faut parcourir les scores pour identifier la classe avec le score le plus élevé, qui représente notre prédiction. \Cette prédiction fonctionne que si le projet est compilé sur Raspberry Pi puisque `tensorflowlite` est nécessaire, si le code C++ est compilé pour une autre cible alors la prédiction avec le neural network sera évité.
 
 ## Mesure de performance
 
