@@ -1,23 +1,59 @@
-# Embedded Machine Learning
 
-https://tanguy-rdt.github.io/embedded-machine-learning/
-
-[![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)  [![forthebadge](http://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
-
-## Présentation du projet
 Au cours des 16h de Cr dédiés à cette matière nous avons conçu un programme permettant la reconnaissance de style musical d’après un extrait audio de 30 secondes.
 Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secondes, format .au, avec 10 classes (blues, classique, country, Disco, Hiphop, Jazz, Metal, Pop, Reggae, Rock).
 
 ![Image Locale](cours/result_emb_proj.png)
 
-## Installation
+## Utilisation
 
-```
-git clone git@github.com:tanguy-rdt/embedded-machine-learning.git
-cd embedded-machine-learning
-git status
-```
-## Démarrage
+1. [__Extraction des descripteurs__](#extraction-des-descripteurs)
+    - Mode normal: Extrait les descripteurs de tous les fichiers audio
+        ```bash
+        $ ./run.sh setup_project 
+        $ ./run.sh create_dataset
+        ```
+    - Mode de debug: Extrait et affiche les descripteurs d'un fichier audio
+        ```
+        $ ./run.sh setup_project -d
+        $ ./run.sh create_dataset -d
+        ```
+
+2. [__Entrainement des models__](#entrainement-des-models)
+    ```bash
+    $ ./run.sh setup_project 
+    $ ./run.sh train_model
+    ```
+
+3. [__Prédiction à l'aide des models__](#prédiction-à-laide-des-models)
+    - En Python sur PC de dev
+        ```bash
+        $ ./run.sh setup_project 
+        $ ./run.sh predict -l python
+        ```
+    - En C++ sur PC de dev
+        ```bash
+        $ ./run.sh setup_project 
+        $ ./run.sh predict -l cpp
+        ```
+    - En C++ sur cible
+        ```bash
+        $ ./run.sh setup_project -t
+        $ ./run.sh predict -l cpp
+        ```
+
+_NB: Il est important de conservé la structure de nos dossiers, sinon le code ne fonctionnera pas:_
+- _Les fichiers audio: `resources/au_files`_
+- _Les fichiers CSV: `resources/csv_files`_
+- _Les modèle Python: `resources/model`_
+- _Les modèle C++: `cpp/predictor/model`_
+
+## Extraction des descripteurs
+
+## Entrainement des models
+
+## Prédiction à l'aide des models
+
+## Mesure de performance
 
 Pour utiliser correctement le projet, il faut executer les codes en suivant rigoureusement les étapes ci-dessous :
 
