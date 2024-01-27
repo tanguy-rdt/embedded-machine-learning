@@ -108,35 +108,141 @@ Cette prédiction fonctionne que si le projet est compilé sur Raspberry Pi puis
 ## Mesure de performance
 
 __Performance à l'entrainement (Python)__
-|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
-|--------------|----------|---------|-------------|------------|
-| Précision    | 0.55  | 0.42 | 0.38     | 0.52     |
-| Ratio        | 180/330  | 138/330 | 122/330     |     |
-| Temps d'éxecution | 16.26ms  | 1.46ms | 2.80ms| 205.24ms     |
+
+<table>
+    <tr>
+        <th></th>
+        <th>Random Forest</th>
+        <th>Decision Tree</th>
+        <th>Lineare SVC</th>
+        <th>Neural Network</th>
+    </tr>
+    <tr>
+        <td>Précision</td>
+        <td>0.55</td>
+        <td>0.42</td>
+        <td>0.38</td>
+        <td>0.52</td>
+    </tr>
+    <tr>
+        <td>Ratio</td>
+        <td>180/330</td>
+        <td>138/330</td>
+        <td>122/330</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Temps d'éxecution</td>
+        <td>16.26ms</td>
+        <td>1.46ms</td>
+        <td>2.80ms</td>
+        <td>205.24ms</td>
+    </tr>
+</table>
+
 
 ![](img/mc_rf.png) ![](img/mc_dt.png) ![](img/mc_svc.png)
 
 __Performance à la prédiction (Python)__
-|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
-|--------------|----------|---------|-------------|------------|
-| Précision    | 0.54  | 0.41 | 0.38     | 0.52     |
-| Ratio        | 180/330  | 138/330 | 122/330     |  173/330     |
-| Temps d'éxecution | 14.29ms  | 0.84ms | 4.15ms     | 22.43ms     |
+
+<table>
+    <tr>
+        <th></th>
+        <th>Random Forest</th>
+        <th>Decision Tree</th>
+        <th>Lineare SVC</th>
+        <th>Neural Network</th>
+    </tr>
+    <tr>
+        <td>Précision</td>
+        <td>0.54</td>
+        <td>0.41</td>
+        <td>0.38</td>
+        <td>0.52</td>
+    </tr>
+    <tr>
+        <td>Ratio</td>
+        <td>180/330</td>
+        <td>138/330</td>
+        <td>122/330</td>
+        <td>173/330</td>
+    </tr>
+    <tr>
+        <td>Temps d'éxecution</td>
+        <td>14.29ms</td>
+        <td>0.84ms</td>
+        <td>4.15ms</td>
+        <td>22.43ms</td>
+    </tr>
+</table>
 
 
 __Performance à la prédiction (C++ sur PC de dev)__
-|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
-|--------------|----------|---------|-------------|------------|
-| Précision    | 0.54  | 0.41 | 0.36     |     |
-| Ratio        | 180/330  | 138/330 | 122/330     |     |
-| Temps d'éxecution | 4.38ms  | 0.089ms | 41.291ms     |      |
+
+<table>
+    <tr>
+        <th></th>
+        <th>Random Forest</th>
+        <th>Decision Tree</th>
+        <th>Lineare SVC</th>
+        <th>Neural Network</th>
+    </tr>
+    <tr>
+        <td>Précision</td>
+        <td>0.54</td>
+        <td>0.41</td>
+        <td>0.36</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Ratio</td>
+        <td>180/330</td>
+        <td>138/330</td>
+        <td>122/330</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Temps d'éxecution</td>
+        <td>4.38ms</td>
+        <td>0.089ms</td>
+        <td>41.291ms</td>
+        <td></td>
+    </tr>
+</table>
+
 
 __Performance à la prédiction (C++ sur raspberry)__
-|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
-|--------------|----------|---------|-------------|------------|
-| Précision    | 0.54  | 0.41 | 0.36     |  0.52     |
-| Ratio        | 180/330  | 138/330 | 122/330     |    173/330     |
-| Temps d'éxecution | 9.149ms  | 0.444ms | 127.249ms     | 50.723ms     |
+
+<table>
+    <tr>
+        <th></th>
+        <th>Random Forest</th>
+        <th>Decision Tree</th>
+        <th>Lineare SVC</th>
+        <th>Neural Network</th>
+    </tr>
+    <tr>
+        <td>Précision</td>
+        <td>0.54</td>
+        <td>0.41</td>
+        <td>0.36</td>
+        <td>0.52</td>
+    </tr>
+    <tr>
+        <td>Ratio</td>
+        <td>180/330</td>
+        <td>138/330</td>
+        <td>122/330</td>
+        <td>173/330</td>
+    </tr>
+    <tr>
+        <td>Temps d'éxecution</td>
+        <td>9.149ms</td>
+        <td>0.444ms</td>
+        <td>127.249ms</td>
+        <td>50.723ms</td>
+    </tr>
+</table>
 
 
 On constate que notre modèle le plus performant pour la classification est le _Random Forest_, mais on remarque également que la prédiction en C++ à un réel
@@ -145,15 +251,15 @@ intérêt puisque les performances sont bien meilleurs d'un point de vue de temp
 
 ```bash
 $ lsd -l resources/model/
-.rw-r--r-- tanguyrdt staff  54 KB Sat Jan 27 11:27:50 2024  DecisionTreeClassifier.joblib
-.rw-r--r-- tanguyrdt staff  81 KB Sat Jan 27 11:27:50 2024  LinearSVC.joblib
-.rw-r--r-- tanguyrdt staff 4.1 MB Sat Jan 27 11:27:50 2024  RandomForestClassifier.joblib
-.rw-r--r-- tanguyrdt staff 1.7 MB Sat Jan 27 11:27:50 2024  Sequential.joblib
+.rw-r--r-- tanguyrdt staff  54 KB Sat Jan 27 11:27:50 2024 DecisionTreeClassifier.joblib
+.rw-r--r-- tanguyrdt staff  81 KB Sat Jan 27 11:27:50 2024 LinearSVC.joblib
+.rw-r--r-- tanguyrdt staff 4.1 MB Sat Jan 27 11:27:50 2024 RandomForestClassifier.joblib
+.rw-r--r-- tanguyrdt staff 1.7 MB Sat Jan 27 11:27:50 2024 Sequential.joblib
 
 $ lsd -l cpp/model/
-.rw-r--r-- tanguyrdt staff 178 B  Sat Jan 27 11:27:42 2024  CMakeLists.txt
-.rw-r--r-- tanguyrdt staff  44 KB Sat Jan 27 11:27:42 2024  DecisionTreeClassifier.h
-.rw-r--r-- tanguyrdt staff 218 KB Sat Jan 27 11:27:42 2024  LinearSVC.h
-.rw-r--r-- tanguyrdt staff 566 KB Sat Jan 27 11:27:42 2024  NeuralNetwork.tflite
-.rw-r--r-- tanguyrdt staff 3.2 MB Sat Jan 27 11:27:42 2024  RandomForestClassifier.h
+.rw-r--r-- tanguyrdt staff 178 B  Sat Jan 27 11:27:42 2024 CMakeLists.txt
+.rw-r--r-- tanguyrdt staff  44 KB Sat Jan 27 11:27:42 2024 DecisionTreeClassifier.h
+.rw-r--r-- tanguyrdt staff 218 KB Sat Jan 27 11:27:42 2024 LinearSVC.h
+.rw-r--r-- tanguyrdt staff 566 KB Sat Jan 27 11:27:42 2024 NeuralNetwork.tflite
+.rw-r--r-- tanguyrdt staff 3.2 MB Sat Jan 27 11:27:42 2024 RandomForestClassifier.h
 ```
