@@ -1,8 +1,20 @@
 
+> Tanguy ROUDAUT - Baptiste LE ROUX - Mathis LE ROUX
+>
+> FIPASE 24
+
+
 Au cours des 16h de Cr dédiés à cette matière nous avons conçu un programme permettant la reconnaissance de style musical d’après un extrait audio de 30 secondes.
 Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secondes, format .au, avec 10 classes (blues, classique, country, Disco, Hiphop, Jazz, Metal, Pop, Reggae, Rock).
 
 ![](img/result_emb_proj.png)
+
+## Sommaire 
+1. [Utilisation](#utilisation)
+2. [Extraction des descripteurs](#extraction-des-descripteurs)
+3. [Entrainement des modeles](#entrainement-des-models)
+4. [Prediction](#prédiction)
+5. [Mesure de performances](#mesure-de-performance)
 
 ## Utilisation
 
@@ -23,17 +35,32 @@ Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secon
     - Sur PC de dev: `$ ./run.sh train_model`
 
 
-3. [__Prédiction à l'aide des models__](#prédiction-à-laide-des-models)
+3. [__Prédiction à l'aide des models__](#prédiction)
     - En Python sur PC de dev: `$ ./run.sh predict -l python`
+        <p>
+        <a href="https://youtu.be/fa-HDyBif2s">
+            <img src="https://img.shields.io/badge/Youtube-red?logo=youtube" alt="">
+        </a>
+        </p>
     - En C++ sur PC de dev: `$ ./run.sh predict -l cpp`
+        <p>
+        <a href="https://youtu.be/UQsWJZHy_KQ">
+            <img src="https://img.shields.io/badge/Youtube-red?logo=youtube" alt="">
+        </a>
+        </p>
     - En C++ sur cible: `$ ./run.sh predict -l cpp` (Il ne faut pas oublier que le projet doit être compilé pour la cible, option `-t`)
+        <p>
+        <a href="https://youtu.be/3dIC714V6eE">
+            <img src="https://img.shields.io/badge/Youtube-red?logo=youtube" alt="">
+        </a>
+        </p>
 
 
 _NB: Il est important de conservé la structure de nos dossiers, sinon le code ne fonctionnera pas:_
 - _Les fichiers audio: `resources/au_files`_
 - _Les fichiers CSV: `resources/csv_files`_
 - _Les modèle Python: `resources/model`_
-- _Les modèle C++: `cpp/predictor/model`_
+- _Les modèle C++: `cpp/model`_
 
 ## Extraction des descripteurs
 
@@ -62,11 +89,11 @@ Ici, `emlearn` ne nous permet pas de convertir notre modèle. Il faut donc le r�
 - __Neural Network:__ L'entraînement du modèle est cette fois-ci plus complexe. Nous utilisons TensorFlow pour créer notre modèle et ajuster ses couches. Après plusieurs tests, nous avons décidé d'utiliser une architecture comprenant plusieurs couches denses. La première couche dense a 128 neurones avec une activation 'relu' et prend en entrée les dimensions de nos données. Elle est suivie par une deuxième couche dense de 64 neurones, également avec une activation 'relu'. Après cela, nous avons une couche 'Flatten' pour aplatir les données avant de les passer à une autre couche dense de 64 neurones. Pour éviter le surajustement, nous avons intégré une couche 'Dropout' avec un taux de 0,5. Enfin, la couche de sortie comporte autant de neurones que de classes dans notre problème, avec une activation 'softmax' pour la classification multiclasse. \
 Nous avons finalement sauvegarder notre modèle au format `.tflite`
 
-A la fin de l'entrainement, tous nos modèles se trouve dans le dossier `resources/model`. Il ne faut pas oublier de déplacer nos modèle C++ dans le dossier `cpp/predictor/model`.
+A la fin de l'entrainement, tous nos modèles se trouve dans le dossier `resources/model`. Il ne faut pas oublier de déplacer nos modèle C++ dans le dossier `cpp/model`.
 
 
 
-## Prédiction à l'aide des models
+## Prédiction
 
 Nous avons mis en place deux type de prédiction, une en C++ et une en Python. Celle en python est plus simple à mettre en place grâce à la fonction `predict()`, nous l'avons principalement utilisé pour vérifier le bon fonctionnement de nos modèles. Nous allons donc décrire dans cette partie le fonctionnement de la prédiction en C++.\
 Au moment de la prédiction il est important d'utiliser notre dataset `resources/dataset_test.csv`, pour s'assurer que les données prédites sont inconnus par nos modèles. 
@@ -75,94 +102,58 @@ Au moment de la prédiction il est important d'utiliser notre dataset `resources
 - __Random Forest:__ La prédiction est simple, on utilise la fonction `RandomForestClassifier_predict` fournis par `emlearn` dans notre fichier `.h`, avec en arguments nos descripteurs et leurs nombres. La fonction nous retourne la prédiction de classe dans laquelle se trouve notre fichier audio.
 - __Decision Tree:__ La procédure est la même grâce à la fonction `DecisionTreeClassifier_predict`
 - __LinearSVC:__ Pour ce modèle, nous utilisons un codage manuel. Chaque descripteur est multiplié par un poids correspondant de notre modèle, situé au même indice, auquel on ajoute ensuite le terme de _biais_. Comme nous avons 10 classes, il est nécessaire de répéter cette étape 10 fois, en utilisant les 10 ensembles différents de vecteurs de poids et de biais. La multiplication de chaque descripteur par son poids associé, suivie de l'addition du biais, génère un score pour chaque classe. La classe avec le score le plus élevé est choisie comme la prédiction de notre modèle.
-- __Neural Network:__ Pour ce modèle, nous utilisons TensorFlow Lite pour effectuer des prédictions en temps réel. Le modèle est chargé à partir du fichier `.tflite` créer lors de l'entrainement puis un interpréteur TensorFlow Lite est construit. Une fois l'interpréteur configuré, nous allouons les tenseurs nécessaires. Pour chaque ensemble de caractéristiques, ces dernières sont chargées dans le tenseur d'entrée. L'interpréteur exécute alors le modèle, et les scores de sortie pour chaque classe sont récupérés. Finalement il faut parcourir les scores pour identifier la classe avec le score le plus élevé, qui représente notre prédiction. \Cette prédiction fonctionne que si le projet est compilé sur Raspberry Pi puisque `tensorflowlite` est nécessaire, si le code C++ est compilé pour une autre cible alors la prédiction avec le neural network sera évité.
+- __Neural Network:__ Pour ce modèle, nous utilisons TensorFlow Lite pour effectuer des prédictions en temps réel. Le modèle est chargé à partir du fichier `.tflite` créer lors de l'entrainement puis un interpréteur TensorFlow Lite est construit. Une fois l'interpréteur configuré, nous allouons les tenseurs nécessaires. Pour chaque ensemble de caractéristiques, ces dernières sont chargées dans le tenseur d'entrée. L'interpréteur exécute alors le modèle, et les scores de sortie pour chaque classe sont récupérés. Finalement il faut parcourir les scores pour identifier la classe avec le score le plus élevé, qui représente notre prédiction. \
+Cette prédiction fonctionne que si le projet est compilé sur Raspberry Pi puisque `tensorflowlite` est nécessaire, si le code C++ est compilé pour une autre cible alors la prédiction avec le neural network sera évité.
 
 ## Mesure de performance
 
-Pour utiliser correctement le projet, il faut executer les codes en suivant rigoureusement les étapes ci-dessous :
+__Performance à l'entrainement (Python)__
+|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
+|--------------|----------|---------|-------------|------------|
+| Précision    | 0.55  | 0.42 | 0.38     | 0.52     |
+| Ratio        | 180/330  | 138/330 | 122/330     |     |
+| Temps d'éxecution | 16.26ms  | 1.46ms | 2.80ms| 205.24ms     |
 
-### Extraction des descriptors
-#### Mode normal
+![](img/mc_rf.png) ![](img/mc_dt.png) ![](img/mc_svc.png)
 
-Pour une utilisation normale du code, executez ces lignes de commande qui permettent d'extraire les descripteurs de tous les fichiers audio dans resoources/au_files, les csv se trouvent dans resources/csv_files.
+__Performance à la prédiction (Python)__
+|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
+|--------------|----------|---------|-------------|------------|
+| Précision    | 0.54  | 0.41 | 0.38     | 0.52     |
+| Ratio        | 180/330  | 138/330 | 122/330     |  173/330     |
+| Temps d'éxecution | 14.29ms  | 0.84ms | 4.15ms     | 22.43ms     |
 
+
+__Performance à la prédiction (C++ sur PC de dev)__
+|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
+|--------------|----------|---------|-------------|------------|
+| Précision    | 0.54  | 0.41 | 0.36     |     |
+| Ratio        | 180/330  | 138/330 | 122/330     |     |
+| Temps d'éxecution | 4.38ms  | 0.089ms | 41.291ms     |      |
+
+__Performance à la prédiction (C++ sur raspberry)__
+|              | Random Forest   | Decision Tree    | Lineare SVC|  Neural Network|
+|--------------|----------|---------|-------------|------------|
+| Précision    | 0.54  | 0.41 | 0.36     |  0.52     |
+| Ratio        | 180/330  | 138/330 | 122/330     |    173/330     |
+| Temps d'éxecution | 9.149ms  | 0.444ms | 127.249ms     | 50.723ms     |
+
+
+On constate que notre modèle le plus performant pour la classification est le _Random Forest_, mais on remarque également que la prédiction en C++ à un réel
+intérêt puisque les performances sont bien meilleurs d'un point de vue de temps d'éxecution mais également de consomation de mémoire. On peut voir si dessous que nos modèle 
+`.h` sont moins lourd que ceux utilisé en python.
+
+```bash
+$ lsd -l resources/model/
+.rw-r--r-- tanguyrdt staff  54 KB Sat Jan 27 11:27:50 2024  DecisionTreeClassifier.joblib
+.rw-r--r-- tanguyrdt staff  81 KB Sat Jan 27 11:27:50 2024  LinearSVC.joblib
+.rw-r--r-- tanguyrdt staff 4.1 MB Sat Jan 27 11:27:50 2024  RandomForestClassifier.joblib
+.rw-r--r-- tanguyrdt staff 1.7 MB Sat Jan 27 11:27:50 2024  Sequential.joblib
+
+$ lsd -l cpp/model/
+.rw-r--r-- tanguyrdt staff 178 B  Sat Jan 27 11:27:42 2024  CMakeLists.txt
+.rw-r--r-- tanguyrdt staff  44 KB Sat Jan 27 11:27:42 2024  DecisionTreeClassifier.h
+.rw-r--r-- tanguyrdt staff 218 KB Sat Jan 27 11:27:42 2024  LinearSVC.h
+.rw-r--r-- tanguyrdt staff 566 KB Sat Jan 27 11:27:42 2024  NeuralNetwork.tflite
+.rw-r--r-- tanguyrdt staff 3.2 MB Sat Jan 27 11:27:42 2024  RandomForestClassifier.h
 ```
-$ ./run.sh setup_project 
-$ ./run.sh create_dataset
-```
-
-#### Mode Debug
-<p>
-  <a href="https://youtu.be/et4SyZprzkw">
-    <img src="https://img.shields.io/badge/Youtube-red?logo=youtube" alt="">
-  </a>
-</p>
-Ce mode à utiliser en debug permet d'extraire les descripteurs pour un seul fichier audio et de les afficher graphiquement.
-
-```
-$ ./run.sh setup_project -d
-$ ./run.sh create_dataset -d
-```
-
-### Entrainement des modèles
-
-Executez ces lignes pour entrainer tous les modèles et réaliser une évaluation à la suite.
-
-```
-$ ./run.sh setup_project 
-$ ./run.sh train_model
-```
-### Prédiction du modèle
-
-Après avoir entrainé les modèles on réalise la prédiction avec les lignes suivantes:
-
-#### Sur pc en python
-<p>
-  <a href="https://youtu.be/fa-HDyBif2s">
-    <img src="https://img.shields.io/badge/Youtube-red?logo=youtube" alt="">
-  </a>
-</p>
-
-```
-$ ./run.sh setup_project 
-$ ./run.sh predict -l python
-```
-
-#### Sur pc en cpp 
-<p>
-  <a href="https://youtu.be/UQsWJZHy_KQ">
-    <img src="https://img.shields.io/badge/Youtube-red?logo=youtube" alt="">
-  </a>
-</p>
-
-```
-$ ./run.sh setup_project 
-$ ./run.sh predict -l cpp
-```
-
-#### Sur rpi en cpp 
-<p>
-  <a href="https://youtu.be/3dIC714V6eE">
-    <img src="https://img.shields.io/badge/Youtube-red?logo=youtube" alt="">
-  </a>
-</p>
-
-```
-$ ./run.sh setup_project -t target
-$ ./run.sh predict -l cpp
-```
-## Performances du système
-![Image Locale](cours/pred_RF.png)
-
-En testant chacun des modèles nous observons que le plus performant est le Random Forest avec une précision de 55% qui est un résultat attendu. Pour améliorer encore cette précision nous pourrions à l'avenir jouer sur les hyperparamètres pour affiner la prédiction.
-
-## Contributing
-
-Si vous souhaitez contribuer, lisez le fichier [CONTRIBUTING.md](https://example.org) pour savoir comment le faire.
-
-## Auteurs
-* **Tanguy Roudaut** _alias_ [@tanguy-rdt](https://github.com/tanguy-rdt)
-* **Baptiste Le Roux** _alias_ [@BaptisteLeRouxx](https://github.com/tanguy-rdt)
-* **Mathis Le Roux** _alias_ [@Math-lrx](https://github.com/tanguy-rdt)
-
-Lisez la liste des [contributeurs](https://github.com/your/project/contributors) pour voir qui à aidé au projet !
