@@ -32,11 +32,11 @@ Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secon
         </a>
         </p>
 
-2. [__Entrainement des models__](#entrainement-des-models)
+2. [__Entrainement des modèles__](#entrainement-des-models)
     - Sur PC de dev: `$ ./run.sh train_model`
 
 
-3. [__Prédiction à l'aide des models__](#prédiction)
+3. [__Prédiction à l'aide des modèles__](#prédiction)
     - En Python sur PC de dev: `$ ./run.sh predict -l python`
         <p>
         <a href="https://youtu.be/fa-HDyBif2s">
@@ -58,7 +58,7 @@ Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secon
 
 
 _NB: Il est important de conserver la structure de nos dossiers, sinon le code ne fonctionnera pas:_
-- _Les fichiers audio: `resources/au_files`_
+- _Les fichiers audios: `resources/au_files`_
 - _Les fichiers CSV: `resources/csv_files`_
 - _Les modèle Python: `resources/model`_
 - _Les modèle C++: `cpp/model`_
