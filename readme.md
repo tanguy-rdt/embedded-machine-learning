@@ -65,7 +65,7 @@ _NB: Il est important de conserver la structure de nos dossiers, sinon le code n
 
 ## Extraction des descripteurs
 
-Il est conseillé de réaliser l'extraction des descripteurs sur le PC de développement pour des raisons de performance. Le code étant écrit en C++ il peut être executer sur Raspberry PI sans problème de portabilité, mais le temps d'execution sera rallongé.
+Il est conseillé de réaliser l'extraction des descripteurs sur le PC de développement pour des raisons de performance. Le code étant écrit en C++ il peut être exécuter sur Raspberry PI sans problème de portabilité, mais le temps d'exécution sera rallongé.
 
 - __Mode Normal:__ \
 Ce mode permet d'extraire tous les descripteurs de chaque fichier audio présent dans le dossier `resources/au_files`. Le code `cpp/audio_preprocessing` permet de lire chaque fichier audio, 
