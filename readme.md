@@ -13,9 +13,9 @@ Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secon
 ## Sommaire 
 1. [Utilisation](#utilisation)
 2. [Extraction des descripteurs](#extraction-des-descripteurs)
-3. [Entrainement des modeles](#entrainement-des-models)
-4. [Prediction](#prédiction)
-5. [Mesure de performances](#mesure-de-performance)
+3. [Entrainement des modèles](#entrainement-des-models)
+4. [Prédiction](#prédiction)
+5. [Mesure des performances](#mesure-de-performance)
 
 ## Utilisation
 
@@ -57,7 +57,7 @@ Nous avons utilisé la base de données GTZAN[1] : 1000 pistes audio de 30 secon
         </p>
 
 
-_NB: Il est important de conservé la structure de nos dossiers, sinon le code ne fonctionnera pas:_
+_NB: Il est important de conserver la structure de nos dossiers, sinon le code ne fonctionnera pas:_
 - _Les fichiers audio: `resources/au_files`_
 - _Les fichiers CSV: `resources/csv_files`_
 - _Les modèle Python: `resources/model`_
@@ -65,45 +65,45 @@ _NB: Il est important de conservé la structure de nos dossiers, sinon le code n
 
 ## Extraction des descripteurs
 
-Il est conseillé de réaliser l'éxtraction des descripteurs sur le PC de développement pour des raisons de performance. Le code étant écris en C++ il peut être éxecuter sur Raspberry PI sans problème de portabilité, mais le temps d'éxecution sera rallonger.
+Il est conseillé de réaliser l'extraction des descripteurs sur le PC de développement pour des raisons de performance. Le code étant écrit en C++ il peut être executer sur Raspberry PI sans problème de portabilité, mais le temps d'execution sera rallongé.
 
 - __Mode Normal:__ \
-Ce mode permet d'extraire tous les déscripteurs de chaque fichier audio présent dans le dossier `resources/au_files`. Le code `cpp/audio_preprocessing` permet de lire chaque fichier audio, 
-de réaliser une FFT est de calculer les descripteurs _mu_ et _sigma_ des fichiers audios. C'est déscripteurs sont ensuite enregistrer au format CSV dans un sous dossier portant le nom de l'audio dans le répertoire `resources/csv_files`. Au long de l'éxtractions, les déscripteurs de chaque fichier audio sont également ajouté au fichier `resources/csv_files/dataset.csv`, ce qui permet de garder une trace par fichier audio mais également d'avoir notre dataset pour réaliser nos entrainement et prédictions.
+Ce mode permet d'extraire tous les descripteurs de chaque fichier audio présent dans le dossier `resources/au_files`. Le code `cpp/audio_preprocessing` permet de lire chaque fichier audio, 
+de réaliser une FFT et de calculer les descripteurs _mu_ et _sigma_ des fichiers audios. Ces descripteurs sont ensuite enregistrés au format CSV dans un sous dossier portant le nom de l'audio dans le répertoire `resources/csv_files`. Tout au long de l'extraction, les descripteurs de chaque fichier audio sont également ajoutés au fichier `resources/csv_files/dataset.csv`, ce qui permet de garder une trace par fichier audio mais également d'avoir notre dataset pour réaliser nos entrainements et prédictions.
 - __Mode Debug:__ \
-Ce mode réalise les mêmes étapes que le mode normal mais seulement un fichier audio est traité. Nous avons choisis le fichier audio _blues.00000.au_, mais si vous souhaitez utiliser un autre vous pouvez remplacer sont path par un autre dans le fichier `run.sh`. Le dataset sera sauvegardé dans le fichier `resources/csv_files/dataset_debug.csv`. A la suite de l'éxtraction des déscripteurs, ils sont afficher à l'aide `matplotlibcpp.cpp`.
+Ce mode réalise les mêmes étapes que le mode normal mais seulement un fichier audio est traité. Nous avons choisi le fichier audio _blues.00000.au_, mais si vous souhaitez utiliser un autre vous pouvez remplacer son path par un autre dans le fichier `run.sh`. Le dataset sera sauvegardé dans le fichier `resources/csv_files/dataset_debug.csv`. A la suite de l'extraction des descripteurs, ils sont affichés à l'aide `matplotlibcpp.cpp`.
 
     ![](./img/matplot.png)
 
 ## Entrainement des models
 
-L'entrainement des modèles doit être réalisé sur PC de dev, la puissance du Raspberry est trop faible pour cette étape. De plus, le code étant en python il est possible de faire fasse à des problèmes de portabilité.
+L'entrainement des modèles doit être réalisé sur PC de dev, la puissance du Raspberry est trop faible pour cette étape. De plus, le code étant en python il est possible de faire face à des problèmes de portabilité.
 
-Le fichiers `resources/csv_files/dataset.csv` créer précédement est ouvert et spliter en deux autres dataset, `resources/csv_files/dataset_train.csv` et `resources/csv_files/dataset_test.csv`. Ce la nous permet d'avoir une portion de dataset que nos modèles n'ont pas rencontré. \
-Notre dataset d'entrainement est ensuite normalisé à l'aide de `StandardScaler`, dont ses poids sont sauvegarder dans `resources/scaler.txt`. Ce fichier sera nécessaire pour normaliser notre dataset au moment de la prédication pour avoir la même cohérence dans l'ensemble de nos dataset. 
+Le fichier `resources/csv_files/dataset.csv` créé précédement est ouvert et splité en deux autres dataset, `resources/csv_files/dataset_train.csv` et `resources/csv_files/dataset_test.csv`. Cela nous permet d'avoir une portion de dataset que nos modèles n'ont pas rencontré. \
+Notre dataset d'entrainement est ensuite normalisé à l'aide de `StandardScaler`, dont ses poids sont sauvegardés dans `resources/scaler.txt`. Ce fichier sera nécessaire pour normaliser notre dataset au moment de la prédiction pour avoir la même cohérence dans l'ensemble de nos dataset.
 
-Maintenant que nos données d'entrainement sont prête, nous pouvons entrainer nos modèle et les convertir dans un format compatible pour nos prédiction en C++:
-- __Random Forest:__ `sklearn.ensemble.RandomForestClassifier`, permet de créer notre modèle en lui passant nos déscripteurs avec la fonction `RandomForestClassifier.fit()`. Les étapes sont simple pour l'entrainement de notre modèle et il en est de même pour la sauvegarde. On utilise le format `.joblib` pour réaliser nos prédiction en Python et `emlearn` pour convertir notre modèle en `.h`.
-- __Decision Tree:__ Les étapes sont similaire pour ce modèle mais, lors de l'entrainement il faut utiliser le classificateur `sklearn.tree.DecisionTreeClassifier`.
+Maintenant que nos données d'entrainement sont prêtes, nous pouvons entraîner nos modèles et les convertir dans un format compatible pour nos prédictions en C++:
+- __Random Forest:__ `sklearn.ensemble.RandomForestClassifier`, permet de créer notre modèle en lui passant nos descripteurs avec la fonction `RandomForestClassifier.fit()`. Les étapes sont simples pour l'entrainement de notre modèle et il en est de même pour la sauvegarde. On utilise le format `.joblib` pour réaliser nos prédictions en Python et `emlearn` pour convertir notre modèle en `.h`.
+- __Decision Tree:__ Les étapes sont similaires pour ce modèle mais, lors de l'entrainement il faut utiliser le classifieur `sklearn.tree.DecisionTreeClassifier`.
 - __LinearSVC:__ La méthode d'entrainement est la même grâce au classifieur `sklearn.svm.LinearSVC`.\
-Ici, `emlearn` ne nous permet pas de convertir notre modèle. Il faut donc le réaliser manuellement, 2 possibilité s'offre à nous, la sauvegarde des poids dans un fichier `.txt` ou dans un `.h`. Nous avons décider de le sauvegarder dans un format `.h`. Plus complexe au moment de la sauvegarde puisqu'il ne faut pas faire d'erreur qui pourrait empêcher la compilation, mais un gain de temps important. Si nous avions sauvegarder nos poids dans un `.txt` il aurait fallut parser le fichier au moment de la prédiction ce qui est une perte de temps.
+Ici, `emlearn` ne nous permet pas de convertir notre modèle. Il faut donc le réaliser manuellement, 2 possibilités s'offrent à nous, la sauvegarde des poids dans un fichier `.txt` ou dans un `.h`. Nous avons décidé de le sauvegarder dans un format `.h`. Plus complexe au moment de la sauvegarde puisqu'il ne faut pas faire d'erreur qui pourrait empêcher la compilation, mais un gain de temps important. Si nous avions sauvegarder nos poids dans un `.txt` il aurait fallut parser le fichier au moment de la prédiction ce qui est une perte de temps.
 - __Neural Network:__ L'entraînement du modèle est cette fois-ci plus complexe. Nous utilisons TensorFlow pour créer notre modèle et ajuster ses couches. Après plusieurs tests, nous avons décidé d'utiliser une architecture comprenant plusieurs couches denses. La première couche dense a 128 neurones avec une activation 'relu' et prend en entrée les dimensions de nos données. Elle est suivie par une deuxième couche dense de 64 neurones, également avec une activation 'relu'. Après cela, nous avons une couche 'Flatten' pour aplatir les données avant de les passer à une autre couche dense de 64 neurones. Pour éviter le surajustement, nous avons intégré une couche 'Dropout' avec un taux de 0,5. Enfin, la couche de sortie comporte autant de neurones que de classes dans notre problème, avec une activation 'softmax' pour la classification multiclasse. \
-Nous avons finalement sauvegarder notre modèle au format `.tflite`
+Nous avons finalement sauvegardé notre modèle au format `.tflite`
 
-A la fin de l'entrainement, tous nos modèles se trouve dans le dossier `resources/model`. Il ne faut pas oublier de déplacer nos modèle C++ dans le dossier `cpp/model`.
+A la fin de l'entrainement, tous nos modèles se trouvent dans le dossier `resources/model`. Il ne faut pas oublier de déplacer nos modèles C++ dans le dossier `cpp/model`.
 
 
 
 ## Prédiction
 
-Nous avons mis en place deux type de prédiction, une en C++ et une en Python. Celle en python est plus simple à mettre en place grâce à la fonction `predict()`, nous l'avons principalement utilisé pour vérifier le bon fonctionnement de nos modèles. Nous allons donc décrire dans cette partie le fonctionnement de la prédiction en C++.\
+Nous avons mis en place deux types de prédictions, une en C++ et une en Python. Celle en python est plus simple à mettre en place grâce à la fonction `predict()`, nous l'avons principalement utilisé pour vérifier le bon fonctionnement de nos modèles. Nous allons donc décrire dans cette partie le fonctionnement de la prédiction en C++.\
 Au moment de la prédiction il est important d'utiliser notre dataset `resources/dataset_test.csv`, pour s'assurer que les données prédites sont inconnus par nos modèles. 
 
 - __Normalisation:__ La normalisation est une étape importante pour assurer une cohérence entre nos descripteurs utilisés pour la prédiction et ceux utilisés lors de l'entraînement des modèles. Nous avions utilisé un scaler qui est sauvegardé dans le fichier `resources/scaler.txt`. La méthode est simple : on l'ouvre pour récupérer nos poids, qui sont aussi nombreux que nos descripteurs, et on applique ces coefficients de normalisation à chaque descripteur de notre jeu de données. Cela permet de standardiser les données en fonction des valeurs apprises lors de l'entraînement, assurant ainsi que les valeurs d'entrée du modèle lors de la prédiction soient sur la même échelle que celles utilisées pendant l'entraînement. 
 - __Random Forest:__ La prédiction est simple, on utilise la fonction `RandomForestClassifier_predict` fournis par `emlearn` dans notre fichier `.h`, avec en arguments nos descripteurs et leurs nombres. La fonction nous retourne la prédiction de classe dans laquelle se trouve notre fichier audio.
 - __Decision Tree:__ La procédure est la même grâce à la fonction `DecisionTreeClassifier_predict`
 - __LinearSVC:__ Pour ce modèle, nous utilisons un codage manuel. Chaque descripteur est multiplié par un poids correspondant de notre modèle, situé au même indice, auquel on ajoute ensuite le terme de _biais_. Comme nous avons 10 classes, il est nécessaire de répéter cette étape 10 fois, en utilisant les 10 ensembles différents de vecteurs de poids et de biais. La multiplication de chaque descripteur par son poids associé, suivie de l'addition du biais, génère un score pour chaque classe. La classe avec le score le plus élevé est choisie comme la prédiction de notre modèle.
-- __Neural Network:__ Pour ce modèle, nous utilisons TensorFlow Lite pour effectuer des prédictions en temps réel. Le modèle est chargé à partir du fichier `.tflite` créer lors de l'entrainement puis un interpréteur TensorFlow Lite est construit. Une fois l'interpréteur configuré, nous allouons les tenseurs nécessaires. Pour chaque ensemble de caractéristiques, ces dernières sont chargées dans le tenseur d'entrée. L'interpréteur exécute alors le modèle, et les scores de sortie pour chaque classe sont récupérés. Finalement il faut parcourir les scores pour identifier la classe avec le score le plus élevé, qui représente notre prédiction. \
+- __Neural Network:__ Pour ce modèle, nous utilisons TensorFlow Lite pour effectuer des prédictions en temps réel. Le modèle est chargé à partir du fichier `.tflite` créer lors de l'entrainement puis un interpréteur TensorFlow Lite est construit. Une fois l'interpreteur configuré, nous allouons les tenseurs nécessaires. Pour chaque ensemble de caractéristiques, ces dernières sont chargées dans le tenseur d'entrée. L'interpréteur exécute alors le modèle, et les scores de sortie pour chaque classe sont récupérés. Finalement il faut parcourir les scores pour identifier la classe avec le score le plus élevé, qui représente notre prédiction. \
 Cette prédiction fonctionne que si le projet est compilé sur Raspberry Pi puisque `tensorflowlite` est nécessaire, si le code C++ est compilé pour une autre cible alors la prédiction avec le neural network sera évité.
 
 ## Mesure de performance
@@ -247,8 +247,8 @@ __Performance à la prédiction (C++ sur raspberry)__
 
 
 On constate que notre modèle le plus performant pour la classification est le _Random Forest_, mais on remarque également que la prédiction en C++ à un réel
-intérêt puisque les performances sont bien meilleurs d'un point de vue de temps d'éxecution mais également de consomation de mémoire. On peut voir si dessous que nos modèle 
-`.h` sont moins lourd que ceux utilisé en python.
+intérêt puisque les performances sont bien meilleures d'un point de vue de temps d'éxecution mais également de consommation de mémoire. On peut voir ci-dessous que nos modèles 
+`.h` sont moins lourds que ceux utilisés en python.
 
 ```bash
 $ lsd -l resources/model/
