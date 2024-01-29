@@ -96,7 +96,7 @@ A la fin de l'entrainement, tous nos modèles se trouvent dans le dossier `resou
 
 ## Prédiction
 
-Nous avons mis en place deux types de prédictions, une en C++ et une en Python. Celle en python est plus simple à mettre en place grâce à la fonction `predict()`, nous l'avons principalement utilisé pour vérifier le bon fonctionnement de nos modèles. Nous allons donc décrire dans cette partie le fonctionnement de la prédiction en C++.\
+Nous avons mis en place deux types de prédictions, l'une en C++ et l'autre en Python. Celle en python est plus simple à mettre en place grâce à la fonction `predict()`, nous l'avons principalement utilisé pour vérifier le bon fonctionnement de nos modèles. Nous allons donc décrire dans cette partie le fonctionnement de la prédiction en C++.\
 Au moment de la prédiction il est important d'utiliser notre dataset `resources/dataset_test.csv`, pour s'assurer que les données prédites sont inconnus par nos modèles. 
 
 - __Normalisation:__ La normalisation est une étape importante pour assurer une cohérence entre nos descripteurs utilisés pour la prédiction et ceux utilisés lors de l'entraînement des modèles. Nous avions utilisé un scaler qui est sauvegardé dans le fichier `resources/scaler.txt`. La méthode est simple : on l'ouvre pour récupérer nos poids, qui sont aussi nombreux que nos descripteurs, et on applique ces coefficients de normalisation à chaque descripteur de notre jeu de données. Cela permet de standardiser les données en fonction des valeurs apprises lors de l'entraînement, assurant ainsi que les valeurs d'entrée du modèle lors de la prédiction soient sur la même échelle que celles utilisées pendant l'entraînement. 
