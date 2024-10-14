@@ -248,7 +248,7 @@ __Performance à la prédiction (C++ sur raspberry)__
 
 On constate que notre modèle le plus performant pour la classification est le _Random Forest_, mais on remarque également que la prédiction en C++ à un réel
 intérêt puisque les performances sont bien meilleures d'un point de vue de temps d'éxecution mais également de consommation de mémoire. On peut voir ci-dessous que nos modèles 
-`.h` sont moins lourds que ceux utilisés en python.
+`.h` sont moins lourds que ceux utilisés en python. 
 
 ```bash
 $ lsd -l resources/model/
